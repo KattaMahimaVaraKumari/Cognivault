@@ -1,0 +1,246 @@
+{
+  "task": "Continuous Burnout Risk Score Regression (0-100)",
+  "target_column": "burnout_risk_score",
+  "n_folds": 5,
+  "train_rows": 1600,
+  "feature_columns": [
+    "study_hours_outside_classes_per_day",
+    "academic_tasks_per_week",
+    "academic_workload",
+    "time_pressure",
+    "avg_sleep_hours",
+    "wakes_up_tired",
+    "physical_activity_days_per_week",
+    "difficulty_concentrating",
+    "academic_emotional_exhaustion"
+  ],
+  "candidates": {
+    "DummyRegressor": {
+      "hyperparameters": {
+        "strategy": "mean"
+      },
+      "summary_metrics": {
+        "mae": {
+          "mean": 16.1152,
+          "std": 0.1816,
+          "std_sample": 0.2031,
+          "min": 15.8859,
+          "max": 16.3854
+        },
+        "rmse": {
+          "mean": 19.7674,
+          "std": 0.3611,
+          "std_sample": 0.4037,
+          "min": 19.2971,
+          "max": 20.3112
+        },
+        "r2": {
+          "mean": -0.0001,
+          "std": 0.0002,
+          "std_sample": 0.0002,
+          "min": -0.0004,
+          "max": -0.0
+        },
+        "fit_time_seconds": {
+          "mean": 0.0004,
+          "std": 0.0005
+        }
+      },
+      "fold_details": [
+        {
+          "fold": 0,
+          "mae": 16.0207,
+          "rmse": 19.2971,
+          "r2": -0.0003,
+          "fit_time_seconds": 0.001
+        },
+        {
+          "fold": 1,
+          "mae": 16.3854,
+          "rmse": 19.9684,
+          "r2": -0.0,
+          "fit_time_seconds": 0.0
+        },
+        {
+          "fold": 2,
+          "mae": 16.0215,
+          "rmse": 19.799,
+          "r2": -0.0004,
+          "fit_time_seconds": 0.0
+        },
+        {
+          "fold": 3,
+          "mae": 16.2624,
+          "rmse": 20.3112,
+          "r2": -0.0,
+          "fit_time_seconds": 0.0
+        },
+        {
+          "fold": 4,
+          "mae": 15.8859,
+          "rmse": 19.4614,
+          "r2": -0.0,
+          "fit_time_seconds": 0.001
+        }
+      ],
+      "out_of_fold_metrics": {
+        "mae": 16.1152,
+        "rmse": 19.7707,
+        "r2": -0.0001
+      }
+    },
+    "Ridge": {
+      "hyperparameters": {
+        "alpha": 1.0,
+        "random_state": 42
+      },
+      "summary_metrics": {
+        "mae": {
+          "mean": 3.314,
+          "std": 0.0873,
+          "std_sample": 0.0976,
+          "min": 3.2598,
+          "max": 3.4873
+        },
+        "rmse": {
+          "mean": 4.1236,
+          "std": 0.1295,
+          "std_sample": 0.1448,
+          "min": 4.0275,
+          "max": 4.369
+        },
+        "r2": {
+          "mean": 0.9564,
+          "std": 0.0029,
+          "std_sample": 0.0032,
+          "min": 0.9513,
+          "max": 0.9602
+        },
+        "fit_time_seconds": {
+          "mean": 0.002,
+          "std": 0.0
+        }
+      },
+      "fold_details": [
+        {
+          "fold": 0,
+          "mae": 3.2735,
+          "rmse": 4.0275,
+          "r2": 0.9564,
+          "fit_time_seconds": 0.002
+        },
+        {
+          "fold": 1,
+          "mae": 3.2607,
+          "rmse": 4.1414,
+          "r2": 0.957,
+          "fit_time_seconds": 0.002
+        },
+        {
+          "fold": 2,
+          "mae": 3.4873,
+          "rmse": 4.369,
+          "r2": 0.9513,
+          "fit_time_seconds": 0.002
+        },
+        {
+          "fold": 3,
+          "mae": 3.2598,
+          "rmse": 4.0495,
+          "r2": 0.9602,
+          "fit_time_seconds": 0.002
+        },
+        {
+          "fold": 4,
+          "mae": 3.2885,
+          "rmse": 4.0306,
+          "r2": 0.9571,
+          "fit_time_seconds": 0.002
+        }
+      ],
+      "out_of_fold_metrics": {
+        "mae": 3.314,
+        "rmse": 4.1256,
+        "r2": 0.9565
+      }
+    },
+    "RandomForestRegressor": {
+      "hyperparameters": {
+        "n_estimators": 100,
+        "max_depth": 12,
+        "min_samples_leaf": 2,
+        "random_state": 42,
+        "n_jobs": -1
+      },
+      "summary_metrics": {
+        "mae": {
+          "mean": 3.9212,
+          "std": 0.1409,
+          "std_sample": 0.1576,
+          "min": 3.7141,
+          "max": 4.1446
+        },
+        "rmse": {
+          "mean": 4.9261,
+          "std": 0.1937,
+          "std_sample": 0.2165,
+          "min": 4.7103,
+          "max": 5.226
+        },
+        "r2": {
+          "mean": 0.9377,
+          "std": 0.0053,
+          "std_sample": 0.0059,
+          "min": 0.9303,
+          "max": 0.946
+        },
+        "fit_time_seconds": {
+          "mean": 0.0935,
+          "std": 0.0024
+        }
+      },
+      "fold_details": [
+        {
+          "fold": 0,
+          "mae": 3.8589,
+          "rmse": 4.7103,
+          "r2": 0.9404,
+          "fit_time_seconds": 0.0919
+        },
+        {
+          "fold": 1,
+          "mae": 3.916,
+          "rmse": 5.0022,
+          "r2": 0.9372,
+          "fit_time_seconds": 0.0954
+        },
+        {
+          "fold": 2,
+          "mae": 4.1446,
+          "rmse": 5.226,
+          "r2": 0.9303,
+          "fit_time_seconds": 0.0973
+        },
+        {
+          "fold": 3,
+          "mae": 3.7141,
+          "rmse": 4.7187,
+          "r2": 0.946,
+          "fit_time_seconds": 0.0909
+        },
+        {
+          "fold": 4,
+          "mae": 3.9722,
+          "rmse": 4.9731,
+          "r2": 0.9347,
+          "fit_time_seconds": 0.092
+        }
+      ],
+      "out_of_fold_metrics": {
+        "mae": 3.9211,
+        "rmse": 4.9299,
+        "r2": 0.9378
+      }
+    }
+  }
+}
