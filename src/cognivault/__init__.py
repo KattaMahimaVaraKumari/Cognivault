@@ -1,4 +1,4 @@
-"""Cognivault ML Package.
+"""Cognivault AI - Student Burnout Risk Awareness ML Package.
 
 Student burnout-risk awareness prototype (synthetic dataset ML pipeline).
 """
