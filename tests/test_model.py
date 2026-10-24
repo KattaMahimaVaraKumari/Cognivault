@@ -5,6 +5,7 @@ import joblib
 import pandas as pd
 import pytest
 from cognivault.config import FEATURE_COLUMNS, RISK_LEVEL_CLASSES, RAW_DATA_PATH, PROCESSED_DATA_PATH
+from cognivault.predict import predict_burnout_risk
 
 
 def test_processed_dataset_exists_and_valid():
@@ -64,3 +65,25 @@ def test_random_forest_model_load_and_predict():
     assert pred_critical in RISK_LEVEL_CLASSES
     assert pred_low in ["Low", "Moderate"]
     assert pred_critical in ["High", "Critical"]
+
+
+def test_predict_burnout_risk_helper_function():
+    """Verify that the backend inference helper predict_burnout_risk works as expected."""
+    sample_input = {
+        "study_hours_outside_classes_per_day": 6.0,
+        "academic_tasks_per_week": 15,
+        "academic_workload": 5,
+        "time_pressure": 4,
+        "avg_sleep_hours": 4.5,
+        "wakes_up_tired": 5,
+        "physical_activity_days_per_week": 0,
+        "difficulty_concentrating": 5,
+        "academic_emotional_exhaustion": 5,
+    }
+    result = predict_burnout_risk(sample_input)
+    assert result["status"] == "success"
+    assert result["burnout_risk_level"] in RISK_LEVEL_CLASSES
+    assert 0.0 <= result["confidence"] <= 1.0
+    assert len(result["probabilities"]) == 4
+    for level in RISK_LEVEL_CLASSES:
+        assert level in result["probabilities"]
