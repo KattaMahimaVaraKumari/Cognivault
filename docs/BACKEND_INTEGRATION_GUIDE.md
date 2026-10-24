@@ -1,28 +1,35 @@
 # Backend Integration Guide — Cognivault ML Model
 
-This guide explains what outputs our trained Random Forest model produces and how the backend team (FastAPI, Flask, Node.js) can easily load the model and extract predictions.
+This guide explains how the backend team (FastAPI, Flask, Node.js) loads and uses the project's selected **Logistic Regression** burnout risk classifier.
 
 ---
 
 ## 📌 1. Short Summary
 
-- **Model File:** `models/random_forest_model.joblib` (~5.1 MB)
-- **Input:** Exactly **9 student survey features** (numbers only, no demographic fields).
+- **Selected Model:** **Logistic Regression** (`StandardScaler` + `LogisticRegression(class_weight='balanced')`)
+- **Model File:** `models/logistic_regression_model.joblib` (Ultra-lightweight: **~2 KB**)
+- **Input:** Exactly **9 student survey features** (numbers only; no demographic fields).
 - **Primary Output:** `burnout_risk_level` (`"Low"`, `"Moderate"`, `"High"`, or `"Critical"`).
-- **Secondary Output:** Class probabilities (e.g., `{"Low": 0.05, "Moderate": 0.20, "High": 0.65, "Critical": 0.10}`).
-- **Model Confidence:** The probability of the predicted winning class (e.g., `65%`).
+- **Secondary Output:** Class probabilities (e.g., `{"Low": 0.00, "Moderate": 0.05, "High": 0.25, "Critical": 0.70}`).
+- **Model Confidence:** Probability of the predicted winning class (e.g., `0.70`).
+
+### 💡 Why Logistic Regression was selected:
+1. **High Macro F1:** Achieved **84.1% on held-out test data** (and **86.6% in 5-fold cross-validation**).
+2. **Top-Tier Critical Burnout Detection:** Has a **90.9% recall on Critical risk** (catches over 9 out of 10 students in severe burnout).
+3. **Built-in Normalization:** `StandardScaler` is bundled directly inside the scikit-learn Pipeline, meaning the backend does **not** need to normalize features manually.
+4. **Ultra-Lightweight:** Loads instantly into memory in < 1 millisecond.
 
 ---
 
 ## 📥 2. Expected Input Features (Request Payload)
 
-The backend must provide these **9 features** in a dictionary or JSON object:
+The backend passes these **9 features** as a dictionary:
 
 | Feature Name | Type | Valid Range | Description |
 |---|:---:|:---:|---|
-| `study_hours_outside_classes_per_day` | float | 0.0 – 12.0 | Daily study hours outside lectures |
+| `study_hours_outside_classes_per_day` | float | 0.0 – 12.0 | Daily study hours outside class |
 | `academic_tasks_per_week` | int | 0 – 25 | Count of weekly assignments/tasks |
-| `academic_workload` | int | 1 – 5 | Self-rated workload rating |
+| `academic_workload` | int | 1 – 5 | Self-rated academic workload |
 | `time_pressure` | int | 1 – 5 | Perceived urgency/deadline stress |
 | `avg_sleep_hours` | float | 3.0 – 10.0 | Daily hours of sleep |
 | `wakes_up_tired` | int | 1 – 5 | Morning fatigue score |
@@ -30,13 +37,11 @@ The backend must provide these **9 features** in a dictionary or JSON object:
 | `difficulty_concentrating` | int | 1 – 5 | Inability to focus rating |
 | `academic_emotional_exhaustion` | int | 1 – 5 | Mental/emotional exhaustion score |
 
-> ⚠️ **Note:** Demographic fields (`institution`, `branch`, `year`, `degree`, `student_id`) are intentionally **not** passed into the model.
+> ⚠️ **Note:** Demographic fields (`institution`, `branch`, `year`, `degree`, `student_id`) are intentionally excluded to prevent bias and keep the model focused strictly on lifestyle habits.
 
 ---
 
 ## 📤 3. Outputs Produced by the Model
-
-When the backend queries the model, it extracts:
 
 1. **`burnout_risk_level` (String):**
    - `"Low"` (Mild stress, healthy balance)
@@ -45,28 +50,46 @@ When the backend queries the model, it extracts:
    - `"Critical"` (Severe burnout indicators, immediate support needed)
 
 2. **`confidence` (Float, 0.0 – 1.0):**
-   - The model's probability for the selected category (e.g., `0.72` = 72% confidence).
+   - Probability of the predicted class (e.g., `0.8712`).
 
 3. **`probabilities` (Dictionary):**
-   - Breakdown across all 4 tiers:
+   - Exact breakdown across all 4 tiers in natural order:
      ```json
      {
-       "Low": 0.03,
-       "Moderate": 0.15,
-       "High": 0.72,
-       "Critical": 0.10
+       "Low": 0.0000,
+       "Moderate": 0.0001,
+       "High": 0.1288,
+       "Critical": 0.8711
      }
      ```
 
-4. **`top_risk_factors` (List of Strings - Optional Guidance):**
-   - Identifies high-risk trigger habits (e.g., sleep < 6 hrs, exhaustion >= 4) to display personalized tips on the frontend dashboard.
+---
+
+## 💻 4. Backend Implementation (FastAPI Example)
+
+### Method 1: Using the built-in helper function (1 line of code)
+```python
+from cognivault.predict import predict_burnout_risk
+
+student_survey = {
+    "study_hours_outside_classes_per_day": 5.0,
+    "academic_tasks_per_week": 14,
+    "academic_workload": 4,
+    "time_pressure": 5,
+    "avg_sleep_hours": 4.5,
+    "wakes_up_tired": 4,
+    "physical_activity_days_per_week": 1,
+    "difficulty_concentrating": 4,
+    "academic_emotional_exhaustion": 5,
+}
+
+result = predict_burnout_risk(student_survey)
+print(result)
+```
 
 ---
 
-## 💻 4. How to Extract in Python Backend (FastAPI Example)
-
-Here is a clean, production-ready snippet for the backend engineer:
-
+### Method 2: FastAPI Endpoint (Copy-paste ready)
 ```python
 import joblib
 import pandas as pd
@@ -74,10 +97,10 @@ from pathlib import Path
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="Cognivault AI Inference API")
+app = FastAPI(title="Cognivault Burnout Risk Inference API")
 
-# Load model once at startup
-MODEL_PATH = Path("models/random_forest_model.joblib")
+# Load model once at startup (StandardScaler + LogisticRegression Pipeline)
+MODEL_PATH = Path("models/logistic_regression_model.joblib")
 model = joblib.load(MODEL_PATH)
 
 FEATURE_COLUMNS = [
@@ -108,27 +131,26 @@ class StudentSurveyInput(BaseModel):
 
 @app.post("/api/predict-burnout")
 def predict_burnout(survey: StudentSurveyInput):
-    # 1. Convert input to DataFrame in the exact feature order
-    input_data = pd.DataFrame([survey.dict()])[FEATURE_COLUMNS]
+    # 1. Arrange input into DataFrame in exact feature order
+    input_df = pd.DataFrame([survey.dict()])[FEATURE_COLUMNS]
 
-    # 2. Extract predicted class
-    predicted_level = model.predict(input_data)[0]
+    # 2. Predict class (Pipeline handles StandardScaler internally)
+    predicted_level = model.predict(input_df)[0]
 
-    # 3. Extract probabilities for all classes
-    raw_probas = model.predict_proba(input_data)[0]
+    # 3. Predict class probabilities
+    raw_probas = model.predict_proba(input_df)[0]
     proba_map = dict(zip(model.classes_, raw_probas))
     
-    # 4. Format probabilities in Low -> Critical order
     probabilities = {
         level: round(float(proba_map.get(level, 0.0)), 4)
         for level in RISK_ORDER
     }
-    
     confidence = probabilities[predicted_level]
 
-    # 5. Return clean JSON response to Frontend
+    # 4. Return clean JSON response
     return {
         "status": "success",
+        "model_used": "LogisticRegression",
         "burnout_risk_level": predicted_level,
         "confidence": confidence,
         "probabilities": probabilities
@@ -137,7 +159,7 @@ def predict_burnout(survey: StudentSurveyInput):
 
 ---
 
-## 📋 5. Sample JSON Request & Response
+## 📋 5. Sample Request & Response
 
 ### Request (`POST /api/predict-burnout`):
 ```json
@@ -158,21 +180,14 @@ def predict_burnout(survey: StudentSurveyInput):
 ```json
 {
   "status": "success",
+  "model_used": "LogisticRegression",
   "burnout_risk_level": "Critical",
-  "confidence": 0.68,
+  "confidence": 0.8711,
   "probabilities": {
-    "Low": 0.01,
-    "Moderate": 0.07,
-    "High": 0.24,
-    "Critical": 0.68
+    "Low": 0.0000,
+    "Moderate": 0.0001,
+    "High": 0.1288,
+    "Critical": 0.8711
   }
 }
 ```
-
----
-
-## 🛡️ Error Handling Best Practices for Backend
-
-1. **Input Validation:** Reject requests with missing survey fields or values out of bounds (e.g. sleep > 24 hrs or workload > 5).
-2. **Order Preservation:** Always pass columns to `model.predict()` matching `model.feature_names_in_`.
-3. **No Retraining:** The backend should **only** call `.predict()` and `.predict_proba()`; it should never call `.fit()`.

@@ -1,4 +1,4 @@
-"""Simple inference interface for Cognivault Random Forest model."""
+"""Inference interface for Cognivault Logistic Regression burnout risk model."""
 
 from pathlib import Path
 from typing import Any, Dict
@@ -6,8 +6,8 @@ import joblib
 import pandas as pd
 from cognivault.config import FEATURE_COLUMNS, RISK_LEVEL_CLASSES
 
-# Resolve default model path
-DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent.parent / "models" / "random_forest_model.joblib"
+# Default champion model selected for Cognivault
+DEFAULT_MODEL_PATH = Path(__file__).resolve().parent.parent.parent / "models" / "logistic_regression_model.joblib"
 
 
 def predict_burnout_risk(
@@ -17,25 +17,29 @@ def predict_burnout_risk(
     """
     Predict student burnout risk level from a dictionary of the 9 survey features.
 
+    Uses the project's selected Logistic Regression pipeline (StandardScaler + LogisticRegression).
+
     Parameters
     ----------
     survey_input : dict
         Dictionary containing the 9 survey feature key-value pairs.
     model_path : Path, optional
-        Path to the saved Random Forest joblib model.
+        Path to the saved joblib model. Defaults to logistic_regression_model.joblib.
 
     Returns
     -------
     dict
-        Prediction results including:
+        Prediction results:
+        - 'model_used': str ('LogisticRegression')
         - 'burnout_risk_level': str ('Low', 'Moderate', 'High', 'Critical')
         - 'confidence': float (probability of predicted class)
         - 'probabilities': dict of class probabilities in natural risk order
     """
-    if not Path(model_path).exists():
-        raise FileNotFoundError(f"Model file not found at {model_path}")
+    path_obj = Path(model_path)
+    if not path_obj.exists():
+        raise FileNotFoundError(f"Model file not found at {path_obj}")
 
-    # Verify all required features exist
+    # Verify all 9 required features exist
     missing_features = [col for col in FEATURE_COLUMNS if col not in survey_input]
     if missing_features:
         raise ValueError(f"Missing required survey feature(s): {missing_features}")
@@ -43,8 +47,8 @@ def predict_burnout_risk(
     # Build single-row DataFrame in exact feature order
     input_df = pd.DataFrame([survey_input])[FEATURE_COLUMNS]
 
-    # Load model
-    model = joblib.load(model_path)
+    # Load model pipeline (StandardScaler + LogisticRegression)
+    model = joblib.load(path_obj)
 
     # Predict class & probabilities
     predicted_level = str(model.predict(input_df)[0])
@@ -59,6 +63,7 @@ def predict_burnout_risk(
 
     return {
         "status": "success",
+        "model_used": "LogisticRegression",
         "burnout_risk_level": predicted_level,
         "confidence": confidence,
         "probabilities": probabilities,

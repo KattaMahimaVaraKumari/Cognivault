@@ -1,4 +1,4 @@
-"""Simple tests for Cognivault AI Random Forest model and pipeline."""
+"""Tests for Cognivault AI Logistic Regression model and pipeline."""
 
 from pathlib import Path
 import joblib
@@ -18,19 +18,21 @@ def test_processed_dataset_exists_and_valid():
     assert "burnout_risk_level" in df.columns
 
 
-def test_random_forest_model_file_exists():
-    """Verify that the trained Random Forest model artifact exists."""
-    model_path = Path(__file__).resolve().parent.parent / "models" / "random_forest_model.joblib"
+def test_logistic_regression_model_file_exists():
+    """Verify that the trained Logistic Regression model artifact exists."""
+    model_path = Path(__file__).resolve().parent.parent / "models" / "logistic_regression_model.joblib"
     assert model_path.exists(), f"Trained model not found at {model_path}"
 
 
-def test_random_forest_model_load_and_predict():
-    """Verify that the saved model loads cleanly and predicts valid risk levels."""
-    model_path = Path(__file__).resolve().parent.parent / "models" / "random_forest_model.joblib"
-    model = joblib.load(model_path)
+def test_logistic_regression_pipeline_structure_and_predict():
+    """Verify that the saved model pipeline loads cleanly and predicts valid risk levels."""
+    model_path = Path(__file__).resolve().parent.parent / "models" / "logistic_regression_model.joblib"
+    pipeline = joblib.load(model_path)
 
-    # Verify input feature order matches the 9 configured features
-    assert list(model.feature_names_in_) == FEATURE_COLUMNS
+    # Check pipeline steps
+    step_names = [step[0] for step in pipeline.steps]
+    assert "scaler" in step_names
+    assert "classifier" in step_names
 
     # Sample student 1: healthy habits (low workload, high sleep)
     sample_low = pd.DataFrame([{
@@ -58,8 +60,8 @@ def test_random_forest_model_load_and_predict():
         "academic_emotional_exhaustion": 5,
     }])[FEATURE_COLUMNS]
 
-    pred_low = model.predict(sample_low)[0]
-    pred_critical = model.predict(sample_critical)[0]
+    pred_low = pipeline.predict(sample_low)[0]
+    pred_critical = pipeline.predict(sample_critical)[0]
 
     assert pred_low in RISK_LEVEL_CLASSES
     assert pred_critical in RISK_LEVEL_CLASSES
@@ -82,6 +84,7 @@ def test_predict_burnout_risk_helper_function():
     }
     result = predict_burnout_risk(sample_input)
     assert result["status"] == "success"
+    assert result["model_used"] == "LogisticRegression"
     assert result["burnout_risk_level"] in RISK_LEVEL_CLASSES
     assert 0.0 <= result["confidence"] <= 1.0
     assert len(result["probabilities"]) == 4
