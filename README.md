@@ -21,7 +21,8 @@ Cognivault/
 │   └── 03_model_training_and_evaluation.ipynb # Step 3: Feature selection, 5-Fold CV, and Logistic Regression evaluation
 │
 ├── models/
-│   └── logistic_regression_model.joblib     # 🏆 Selected champion model artifact (~2 KB)
+│   ├── logistic_regression_model.joblib     # 🏆 Selected champion model artifact (~2 KB)
+│   └── random_forest_model.joblib           # 🌲 Benchmark ensemble model artifact (~5.8 MB)
 │
 ├── docs/
 │   └── BACKEND_INTEGRATION_GUIDE.md         # 🔌 Backend & API integration instructions
