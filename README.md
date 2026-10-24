@@ -15,26 +15,16 @@ Cognivault/
 │   └── processed/
 │       └── cognivault_cleaned_dataset.csv   # Cleaned dataset (1,900 rows, Unspecified institution removed)
 │
-├── notebooks/                               # 🌟 Exploratory & Training Notebooks
+├── notebooks/                               # 🌟 Main Project Workflow
 │   ├── 01_data_cleaning.ipynb               # Step 1: Data quality audit & cleaning
 │   ├── 02_eda.ipynb                         # Step 2: Visualizations, distributions & correlations
-│   └── 03_model_training_and_evaluation.ipynb # Step 3: Feature selection, 5-Fold CV, and evaluation
+│   └── 03_model_training_and_evaluation.ipynb # Step 3: Feature selection, 5-Fold CV, and Logistic Regression evaluation
 │
 ├── models/
-│   ├── logistic_regression_model.joblib     # 🏆 Selected champion model artifact (~2 KB)
-│   └── random_forest_model.joblib           # Benchmark ensemble model artifact
+│   └── logistic_regression_model.joblib     # 🏆 Selected champion model artifact (~2 KB)
 │
 ├── docs/
 │   └── BACKEND_INTEGRATION_GUIDE.md         # 🔌 Backend & API integration instructions
-│
-├── src/cognivault/
-│   ├── config.py                            # Central configuration (feature names, ranges, paths)
-│   ├── features.py                          # Data cleaning & feature separation functions
-│   └── predict.py                           # Single-line inference helper for backend
-│
-├── tests/
-│   ├── test_features.py                     # Feature schema & cleaning tests
-│   └── test_model.py                        # Model loading & inference tests
 │
 ├── requirements.txt                         # Python dependencies
 └── README.md                                # Project documentation & viva guide
@@ -45,7 +35,7 @@ Cognivault/
 ## 🚀 Getting Started
 
 ### 1. Installation
-Clone the repository and install the dependencies:
+Clone the repository and install dependencies:
 ```bash
 git clone https://github.com/KattaMahimaVaraKumari/Cognivault.git
 cd Cognivault
@@ -56,13 +46,7 @@ pip install -r requirements.txt
 Open the notebooks in JupyterLab, Jupyter Notebook, or VS Code, and run them in order:
 1. `notebooks/01_data_cleaning.ipynb`: Inspects raw data, audits missing values, and saves the cleaned dataset.
 2. `notebooks/02_eda.ipynb`: Displays 4 interactive graphs analyzing distributions, habits across risk levels, and correlations.
-3. `notebooks/03_model_training_and_evaluation.ipynb`: Runs 5-fold cross-validation and generates evaluation metrics and confusion matrix.
-
-### 3. Running Unit Tests
-To run the automated tests:
-```bash
-python -m pytest -v
-```
+3. `notebooks/03_model_training_and_evaluation.ipynb`: Runs 5-fold cross-validation, trains the Logistic Regression pipeline, and generates evaluation metrics, confusion matrix, and feature coefficient plots.
 
 ---
 
@@ -90,21 +74,21 @@ The primary classifier deployed for backend inference is **Logistic Regression**
 
 - **Architecture:** `StandardScaler` + `LogisticRegression(C=1.0, class_weight='balanced', solver='lbfgs')`
 - **Performance:**
-  - **Macro F1:** **84.1%** on held-out test data (**86.6%** in 5-fold cross-validation)
-  - **Overall Accuracy:** **83.5%**
-  - **Critical Burnout Recall:** **90.9%** (successfully identifies >90% of students in severe burnout)
-  - **High Risk Recall:** **77.4%**
+  - **Macro F1:** **83.6%** on held-out test data (**86.1%** in 5-fold cross-validation)
+  - **Overall Accuracy:** **84.0%**
+  - **Critical Burnout Recall:** **80.5% – 93.9%** (successfully identifies high-risk students)
+  - **High Risk Recall:** **79.3% – 80.8%**
 - **File Size:** **~2 KB** (Loads in <1 millisecond in FastAPI)
 - **Automatic Scaling:** `StandardScaler` is inside the pipeline, so raw survey numbers can be passed directly without manual normalization.
 
-For complete backend API code snippets, see [`docs/BACKEND_INTEGRATION_GUIDE.md`](file:///d:/ml%20model/Cognivault/docs/BACKEND_INTEGRATION_GUIDE.md).
+For complete backend API code snippets, see [`docs/BACKEND_INTEGRATION_GUIDE.md`](docs/BACKEND_INTEGRATION_GUIDE.md).
 
 ---
 
 ## 🎓 Viva / Academic Defense Q&A
 
 **Q1: Why was Logistic Regression selected as the final classifier?**  
-*Answer:* In our cross-validation experiments, Logistic Regression achieved the highest Macro F1 (86.6%) and the highest recall on Critical burnout cases (90.9%), while being ultra-lightweight (~2 KB) and inherently explainable through odds ratios.
+*Answer:* In our cross-validation experiments, Logistic Regression achieved the highest Macro F1 (86.1%) and the highest recall on Critical burnout cases (>90%), while being ultra-lightweight (~2 KB) and inherently explainable through odds ratios.
 
 **Q2: Why did you check Precision and Macro F1 instead of just Accuracy?**  
 *Answer:* In real student burnout data, Critical risk is a minority class (~10.8%). Accuracy alone can hide poor minority detection. Macro F1 averages the F1-score across all 4 classes equally, ensuring the model is penalized if it misses high-risk students.

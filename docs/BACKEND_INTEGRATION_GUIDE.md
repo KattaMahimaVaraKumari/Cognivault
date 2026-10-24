@@ -14,8 +14,8 @@ This guide explains how the backend team (FastAPI, Flask, Node.js) loads and use
 - **Model Confidence:** Probability of the predicted winning class (e.g., `0.70`).
 
 ### 💡 Why Logistic Regression was selected:
-1. **High Macro F1:** Achieved **84.1% on held-out test data** (and **86.6% in 5-fold cross-validation**).
-2. **Top-Tier Critical Burnout Detection:** Has a **90.9% recall on Critical risk** (catches over 9 out of 10 students in severe burnout).
+1. **High Macro F1:** Achieved **83.6% on held-out test data** (and **86.1% in 5-fold cross-validation**).
+2. **Top-Tier Critical Burnout Detection:** Over **90% recall on Critical risk** in cross-validation.
 3. **Built-in Normalization:** `StandardScaler` is bundled directly inside the scikit-learn Pipeline, meaning the backend does **not** need to normalize features manually.
 4. **Ultra-Lightweight:** Loads instantly into memory in < 1 millisecond.
 
@@ -67,29 +67,8 @@ The backend passes these **9 features** as a dictionary:
 
 ## 💻 4. Backend Implementation (FastAPI Example)
 
-### Method 1: Using the built-in helper function (1 line of code)
-```python
-from cognivault.predict import predict_burnout_risk
+Here is a copy-paste ready FastAPI implementation for the backend engineer:
 
-student_survey = {
-    "study_hours_outside_classes_per_day": 5.0,
-    "academic_tasks_per_week": 14,
-    "academic_workload": 4,
-    "time_pressure": 5,
-    "avg_sleep_hours": 4.5,
-    "wakes_up_tired": 4,
-    "physical_activity_days_per_week": 1,
-    "difficulty_concentrating": 4,
-    "academic_emotional_exhaustion": 5,
-}
-
-result = predict_burnout_risk(student_survey)
-print(result)
-```
-
----
-
-### Method 2: FastAPI Endpoint (Copy-paste ready)
 ```python
 import joblib
 import pandas as pd
