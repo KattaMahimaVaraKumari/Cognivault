@@ -202,7 +202,7 @@ export const PredictionPage: React.FC = () => {
       const payload = {
         study_hours_outside_classes: responses['study_hours_outside_classes']?.selected[0] || '2–4 hours',
         academic_tasks_weekly: responses['academic_tasks_weekly']?.selected[0] || '3–5',
-        perceived_academic_workload: responses['perceived_academic_workload']?.selected[0] || 'Manageable',
+        perceived_academic_workload: responses['perceived_academic_workload']?.selected[0] || 'Sometimes',
         nightly_sleep_hours: responses['nightly_sleep_hours']?.selected[0] || '7–8 hours',
         frequency_waking_tired: responses['frequency_waking_tired']?.selected[0] || 'Rarely',
         weekly_physical_activity: responses['weekly_physical_activity']?.selected[0] || '1–2 days',
