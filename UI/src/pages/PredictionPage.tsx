@@ -214,7 +214,10 @@ export const PredictionPage: React.FC = () => {
         user_feedback: responses['open_feedback_design']?.textValue || '',
       }
 
-      const res = await fetch('/api/predict', {
+      const apiBaseUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
+      const predictUrl = apiBaseUrl ? `${apiBaseUrl}/api/predict` : '/api/predict'
+
+      const res = await fetch(predictUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

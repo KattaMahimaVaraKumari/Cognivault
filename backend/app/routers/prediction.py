@@ -30,6 +30,12 @@ router = APIRouter(prefix="/api", tags=["Burnout Prediction"])
         "trained Logistic Regression pipeline, and optionally stores the assessment in MongoDB Atlas."
     ),
 )
+@router.post(
+    "/predict",
+    response_model=PredictionResponse,
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,
+)
 def predict_burnout(
     payload: Dict[str, Any] = Body(...),
     db=Depends(get_db),

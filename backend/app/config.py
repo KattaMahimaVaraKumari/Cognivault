@@ -8,7 +8,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # Base directories
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = BACKEND_DIR.parent
-DEFAULT_MODEL_PATH = PROJECT_ROOT / "models" / "logistic_regression_model.joblib"
+
+# Check for model in backend/models first (deployment self-contained), fallback to root models/
+BACKEND_MODEL_PATH = BACKEND_DIR / "models" / "logistic_regression_model.joblib"
+ROOT_MODEL_PATH = PROJECT_ROOT / "models" / "logistic_regression_model.joblib"
+DEFAULT_MODEL_PATH = BACKEND_MODEL_PATH if BACKEND_MODEL_PATH.exists() else ROOT_MODEL_PATH
 
 
 class Settings(BaseSettings):
