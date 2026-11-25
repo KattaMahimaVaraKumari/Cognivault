@@ -66,10 +66,8 @@ export function Component({
     const swipe = Math.abs(offset.x) * velocity.x
 
     if (offset.x < -SWIPE_THRESHOLD || swipe < -800) {
-      // Swiped left - go to next card
       setActiveIndex((prev) => (prev + 1) % cards.length)
     } else if (offset.x > SWIPE_THRESHOLD || swipe > 800) {
-      // Swiped right - go to previous card
       setActiveIndex((prev) => (prev - 1 + cards.length) % cards.length)
     }
     setIsDragging(false)
@@ -81,7 +79,7 @@ export function Component({
       const index = (activeIndex + i) % cards.length
       reordered.push({ ...cards[index], stackPosition: i, originalIndex: index })
     }
-    return reordered.reverse() // Reverse so top card renders last (on top)
+    return reordered.reverse()
   }
 
   const getLayoutStyles = (stackPosition: number) => {
@@ -98,12 +96,12 @@ export function Component({
           }
         }
         return {
-          top: stackPosition * 10,
-          scale: 1 - stackPosition * 0.03,
-          zIndex: 20 - stackPosition,
-          rotate: (stackPosition - 1) * 1.5,
-          opacity: stackPosition === 0 ? 1 : 0.65 - stackPosition * 0.25,
-          pointerEvents: stackPosition === 0 ? ("auto" as const) : ("none" as const),
+          top: stackPosition * 12,
+          scale: 1 - stackPosition * 0.035,
+          zIndex: 10 - stackPosition,
+          rotate: stackPosition === 0 ? 0 : stackPosition % 2 === 0 ? 1 : -1,
+          opacity: stackPosition === 0 ? 1 : stackPosition === 1 ? 0.88 : 0.65,
+          pointerEvents: (stackPosition === 0 ? "auto" : "none") as "auto" | "none",
         }
       case "grid":
         return {
@@ -127,7 +125,7 @@ export function Component({
   }
 
   const containerStyles = {
-    stack: "relative min-h-[460px] w-full max-w-2xl mx-auto pb-10",
+    stack: "relative min-h-[480px] w-full max-w-2xl mx-auto pb-10",
     grid: "grid grid-cols-1 md:grid-cols-2 gap-4 w-full",
     list: "flex flex-col gap-4 w-full max-w-3xl mx-auto",
   }
@@ -141,11 +139,11 @@ export function Component({
     <div className={cn("space-y-6", className)}>
       {/* Layout Toggle */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="text-xs font-medium text-gray-500">
-          <span>Display Layout</span>
+        <div className="text-xs font-semibold uppercase tracking-wider text-[#735562]">
+          <span>Card View Mode</span>
         </div>
 
-        <div className="flex items-center justify-center gap-1 rounded-lg border border-gray-200 bg-white p-1 shadow-2xs">
+        <div className="flex items-center justify-center gap-1 rounded-xl glass-panel p-1 shadow-2xs border border-[#ffdce4]">
           {(Object.keys(layoutIcons) as LayoutMode[]).map((mode) => {
             const Icon = layoutIcons[mode]
             return (
@@ -153,10 +151,10 @@ export function Component({
                 key={mode}
                 onClick={() => setLayout(mode)}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer",
+                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer",
                   layout === mode
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-100",
+                    ? "bg-gradient-to-r from-[#f87d9f] to-[#e0567b] text-white shadow-xs"
+                    : "text-[#6e535e] hover:text-[#2d1b24] hover:bg-[#fff0f4]",
                 )}
                 aria-label={`Switch to ${mode} layout`}
               >
@@ -208,85 +206,53 @@ export function Component({
                     onCardClick?.(card)
                   }}
                   className={cn(
-                    "rounded-xl border border-gray-200 bg-white p-5 sm:p-7 transition-all shadow-xs",
+                    "rounded-2xl glass-panel p-6 sm:p-8 transition-all shadow-md",
+                    "border border-[#ffdce4]/95 bg-white/85 backdrop-blur-xl",
                     layout === "stack" && "absolute inset-x-0 w-full",
-                    layout === "stack" && isTopCard && "cursor-grab active:cursor-grabbing border-gray-300 shadow-md",
-                    layout === "grid" && "cursor-pointer hover:border-gray-400 hover:shadow-xs",
-                    layout === "list" && "cursor-pointer hover:border-gray-300",
-                    isExpanded && "ring-2 ring-gray-900",
-                    card.originalIndex === activeIndex && layout !== "stack" && "ring-1 ring-gray-900 border-gray-900",
+                    layout === "stack" && isTopCard && "cursor-grab active:cursor-grabbing shadow-lg shadow-[#f0507e]/10 border-[#fcaec2] ring-1 ring-[#fcaec2]/40",
+                    layout === "grid" && "cursor-pointer hover:border-[#fcaec2] hover:shadow-md",
+                    layout === "list" && "cursor-pointer hover:border-[#fcaec2]",
+                    isExpanded && "ring-2 ring-[#e0567b] shadow-lg",
+                    card.originalIndex === activeIndex && layout !== "stack" && "ring-2 ring-[#e0567b] border-[#f48ea8] shadow-md",
                   )}
-                  style={{
-                    backgroundColor: card.color || undefined,
-                  }}
                 >
-                  {/* Top card header with icon and title */}
-                  <div className="flex items-start gap-3.5">
-                    {card.icon && (
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-gray-50 text-gray-800">
+                  <div className="space-y-4">
+                    {/* Badge and Icon */}
+                    <div className="flex items-center justify-between gap-3">
+                      {card.badge && (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold uppercase tracking-wider bg-[#fff0f4] text-[#8c1d3c] border border-[#fcaec2]/60 shadow-2xs">
+                          {card.badge}
+                        </span>
+                      )}
+
+                      <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff0f4] border border-[#fcaec2]/70 text-[#c0385c] shadow-2xs">
                         {card.icon}
                       </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      {card.badge && (
-                        <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                          {card.badge}
-                        </div>
-                      )}
-                      <h3 className="font-semibold text-gray-900 text-base leading-snug">
+                    </div>
+
+                    {/* Title & Description */}
+                    <div className="space-y-1.5">
+                      <h2 className="text-base sm:text-lg font-bold text-[#2d1b24] tracking-tight leading-snug">
                         {card.title}
-                      </h3>
+                      </h2>
                       {card.description && (
-                        <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                        <p className="text-xs sm:text-sm text-[#735562] font-medium">
                           {card.description}
                         </p>
                       )}
                     </div>
+
+                    {/* Question Content */}
+                    <div className="pt-2">{card.content}</div>
                   </div>
-
-                  {/* Question content & interactive answer choices */}
-                  {card.content && (
-                    <div className="mt-5 pt-4 border-t border-gray-100">
-                      {card.content}
-                    </div>
-                  )}
-
-                  {isTopCard && layout === "stack" && (
-                    <div className="mt-5 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
-                      <span>Swipe card left/right or use controls below</span>
-                      <span className="font-medium text-gray-600">
-                        Card {card.originalIndex + 1} of {cards.length}
-                      </span>
-                    </div>
-                  )}
                 </motion.div>
               )
             })}
           </AnimatePresence>
         </motion.div>
       </LayoutGroup>
-
-      {/* Pagination dots for stack layout */}
-      {layout === "stack" && cards.length > 1 && (
-        <div className="flex justify-center items-center gap-1.5 pt-2 flex-wrap max-w-md mx-auto">
-          {cards.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setActiveIndex(index)}
-              className={cn(
-                "h-2 rounded-full transition-all cursor-pointer",
-                index === activeIndex
-                  ? "w-6 bg-gray-900"
-                  : "w-2 bg-gray-200 hover:bg-gray-400",
-              )}
-              aria-label={`Go to card ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
     </div>
   )
 }
 
-export const MorphingCardStack = Component
 export default Component

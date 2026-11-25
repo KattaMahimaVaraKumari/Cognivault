@@ -1,5 +1,5 @@
 import React from 'react'
-import { Check, Clock, AlertCircle, Sparkles } from 'lucide-react'
+import { Clock, AlertCircle, Sparkles } from 'lucide-react'
 import { Routine } from '@/types/wellness'
 import { cn } from '@/lib/utils'
 
@@ -17,40 +17,40 @@ export const RoutineCard: React.FC<RoutineCardProps> = ({
   return (
     <article
       className={cn(
-        'rounded-xl border bg-white p-5 sm:p-6 flex flex-col justify-between transition-all shadow-xs',
+        'rounded-2xl glass-card-interactive p-6 flex flex-col justify-between transition-all relative overflow-hidden border',
         isCompleted
-          ? 'border-gray-300 bg-gray-50/40'
-          : 'border-gray-200 hover:border-gray-300'
+          ? 'border-[#86efac] bg-[#f0fdf4]/50'
+          : 'border-[#ffdce4]/90'
       )}
     >
       <div className="space-y-4">
         {/* Header: Title, Category & Duration */}
         <div>
-          <div className="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-md border border-gray-200 bg-gray-50 text-[11px] font-semibold uppercase tracking-wider text-gray-600">
+          <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#fff0f4] text-[#8c1d3c] border border-[#fcaec2]/70 shadow-2xs">
               {routine.categoryLabel}
             </span>
 
-            <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
+            <div className="flex items-center gap-2 text-xs text-[#735562] font-semibold">
               <span className="inline-flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5" />
+                <Clock className="w-3.5 h-3.5 text-[#e0567b]" />
                 <span>{routine.duration}</span>
               </span>
               <span>•</span>
-              <span className="text-gray-700">{routine.difficulty}</span>
+              <span className="text-[#a32849]">{routine.difficulty}</span>
             </div>
           </div>
 
-          <h2 className="text-base sm:text-lg font-semibold text-gray-900 leading-snug">
+          <h2 className="text-base sm:text-lg font-bold text-[#2d1b24] leading-snug">
             {routine.name}
           </h2>
 
           {/* Target body areas */}
-          <div className="flex flex-wrap gap-1.5 mt-2">
+          <div className="flex flex-wrap gap-1.5 mt-2.5">
             {routine.targetAreas.map((area) => (
               <span
                 key={area}
-                className="text-[11px] px-2 py-0.5 rounded-sm bg-gray-100 text-gray-600"
+                className="text-[11px] px-2.5 py-0.5 rounded-lg bg-white/90 border border-[#fed5df] text-[#553b46] font-medium shadow-2xs"
               >
                 {area}
               </span>
@@ -59,11 +59,11 @@ export const RoutineCard: React.FC<RoutineCardProps> = ({
         </div>
 
         {/* Step-by-Step Instructions */}
-        <div className="space-y-2 pt-2 border-t border-gray-100">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Instructions
+        <div className="space-y-2 pt-3 border-t border-[#ffeef2]">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#735562]">
+            Guided Steps
           </h3>
-          <ol className="space-y-1.5 text-xs sm:text-sm text-gray-700 leading-relaxed list-decimal list-outside pl-4">
+          <ol className="space-y-1.5 text-xs sm:text-sm text-[#4b353f] leading-relaxed list-decimal list-outside pl-4 font-normal">
             {routine.instructions.map((step, idx) => (
               <li key={idx} className="pl-1">
                 {step}
@@ -74,41 +74,35 @@ export const RoutineCard: React.FC<RoutineCardProps> = ({
 
         {/* Safety Reminder */}
         {routine.safetyReminder && (
-          <div className="flex items-start gap-2 p-2.5 rounded-lg border border-gray-100 bg-gray-50/70 text-xs text-gray-600">
-            <AlertCircle className="w-3.5 h-3.5 text-gray-400 shrink-0 mt-0.5" />
-            <p className="leading-relaxed">{routine.safetyReminder}</p>
+          <div className="flex items-start gap-2 p-3 rounded-xl border border-[#fed5df] bg-white/70 text-xs text-[#614752] shadow-2xs">
+            <AlertCircle className="w-4 h-4 text-[#e0567b] shrink-0 mt-0.5" />
+            <p className="leading-relaxed font-normal">{routine.safetyReminder}</p>
           </div>
         )}
       </div>
 
-      {/* Completion Action */}
-      <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between gap-3">
+      {/* Completion Action Button */}
+      <div className="mt-6 pt-4 border-t border-[#ffeef2] flex items-center justify-between gap-3">
         {isCompleted ? (
-          <span className="inline-flex items-center gap-1 text-xs font-medium text-gray-800">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Completed this session</span>
+          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#166534]">
+            <Sparkles className="w-4 h-4 text-[#16a34a]" />
+            <span>Completed</span>
           </span>
         ) : (
-          <span className="text-xs text-gray-400">Ready to practice</span>
+          <span className="text-xs font-medium text-[#9c7886]">Ready to practice</span>
         )}
 
         <button
           type="button"
           onClick={() => onToggleComplete(routine.id)}
           className={cn(
-            'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors cursor-pointer',
+            'inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer',
             isCompleted
-              ? 'bg-gray-900 text-white hover:bg-gray-800'
-              : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+              ? 'btn-wellness-secondary text-[#166534] border-[#86efac]'
+              : 'btn-wellness-primary'
           )}
-          aria-label={
-            isCompleted
-              ? `Mark ${routine.name} as incomplete`
-              : `Mark ${routine.name} as completed`
-          }
         >
-          <Check className={cn('w-3.5 h-3.5', isCompleted ? 'stroke-[2.5]' : 'text-gray-400')} />
-          <span>{isCompleted ? 'Completed' : 'Mark Complete'}</span>
+          <span>{isCompleted ? 'Mark Incomplete' : 'Complete Routine'}</span>
         </button>
       </div>
     </article>

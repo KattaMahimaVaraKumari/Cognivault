@@ -25,46 +25,45 @@ interface ActivityHistoryListProps {
 export const ActivityHistoryList: React.FC<ActivityHistoryListProps> = ({ activities }) => {
   if (!activities || activities.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-6 sm:p-8 text-center shadow-2xs space-y-4">
-        <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-400 mx-auto">
-          <Clock className="w-5 h-5" />
+      <div className="rounded-2xl glass-panel p-8 sm:p-10 text-center shadow-sm space-y-4 border border-[#ffdce4]/90">
+        <div className="w-12 h-12 rounded-2xl bg-[#fff0f4] border border-[#fcaec2] flex items-center justify-center text-[#c0385c] mx-auto shadow-2xs">
+          <Clock className="w-6 h-6" />
         </div>
         <div className="space-y-1.5 max-w-md mx-auto">
-          <h3 className="text-sm font-semibold text-gray-900">
-            No activities recorded in current session
+          <h3 className="text-sm sm:text-base font-bold text-[#2d1b24]">
+            No activity logged in current session
           </h3>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            Your activity history will appear here once you take a stress assessment, practice guided breathing, or complete desk stretching routines.
+          <p className="text-xs text-[#735562] leading-relaxed font-normal">
+            Take an interactive stress evaluation, practice guided breathing, or complete desk stretches to log your progress.
           </p>
         </div>
 
-        {/* Feature Navigation Links */}
-        <div className="pt-2 flex flex-wrap items-center justify-center gap-2.5">
+        <div className="pt-3 flex flex-wrap items-center justify-center gap-3">
           <Link
             to="/prediction"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-xs font-medium text-gray-800 transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-wellness-secondary text-xs font-bold cursor-pointer"
           >
-            <Brain className="w-3.5 h-3.5 text-gray-600" />
+            <Brain className="w-4 h-4 text-[#e0567b]" />
             <span>Stress Assessment</span>
-            <ArrowRight className="w-3 h-3 text-gray-400" />
+            <ArrowRight className="w-3.5 h-3.5 text-[#9c7886]" />
           </Link>
 
           <Link
             to="/meditation"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-xs font-medium text-gray-800 transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-wellness-secondary text-xs font-bold cursor-pointer"
           >
-            <Wind className="w-3.5 h-3.5 text-gray-600" />
-            <span>Meditation Timer</span>
-            <ArrowRight className="w-3 h-3 text-gray-400" />
+            <Wind className="w-4 h-4 text-[#e0567b]" />
+            <span>Breathing Timer</span>
+            <ArrowRight className="w-3.5 h-3.5 text-[#9c7886]" />
           </Link>
 
           <Link
             to="/physical-wellness"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-xs font-medium text-gray-800 transition-colors shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl btn-wellness-secondary text-xs font-bold cursor-pointer"
           >
-            <HeartPulse className="w-3.5 h-3.5 text-gray-600" />
+            <HeartPulse className="w-4 h-4 text-[#e0567b]" />
             <span>Physical Wellness</span>
-            <ArrowRight className="w-3 h-3 text-gray-400" />
+            <ArrowRight className="w-3.5 h-3.5 text-[#9c7886]" />
           </Link>
         </div>
       </div>
@@ -72,7 +71,7 @@ export const ActivityHistoryList: React.FC<ActivityHistoryListProps> = ({ activi
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-2xs divide-y divide-gray-100 overflow-hidden">
+    <div className="rounded-2xl glass-panel shadow-sm divide-y divide-[#ffeef2] overflow-hidden border border-[#ffdce4]/90">
       {activities.map((item) => {
         const Icon =
           item.category === 'assessment'
@@ -84,37 +83,31 @@ export const ActivityHistoryList: React.FC<ActivityHistoryListProps> = ({ activi
         return (
           <div
             key={item.id}
-            className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-gray-50/50 transition-colors"
+            className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-[#fff5f8]/50 transition-colors"
           >
             <div className="flex items-start gap-3.5">
-              <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-700 shrink-0 mt-0.5">
-                <Icon className="w-4 h-4" />
+              <div className="w-10 h-10 rounded-xl bg-[#fff0f4] border border-[#fcaec2]/80 flex items-center justify-center text-[#c0385c] shrink-0 shadow-2xs">
+                <Icon className="w-5 h-5 stroke-[1.8]" />
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="text-sm font-semibold text-gray-900">{item.title}</h4>
-                  <span className="text-[11px] font-medium text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                  <h3 className="text-sm font-bold text-[#2d1b24]">{item.title}</h3>
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#ffe4ec] text-[#8c1d3c] border border-[#fcaec2]/60">
                     {item.categoryLabel}
                   </span>
                   {item.isSample && (
-                    <span className="text-[10px] font-medium text-gray-400 border border-dashed border-gray-300 px-1.5 py-0.2 rounded-sm">
-                      Illustrative Demo
+                    <span className="text-[10px] font-medium text-[#9c7886] bg-white/80 px-2 py-0.5 rounded-full border border-[#fed5df]">
+                      Sample
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-600 leading-relaxed">{item.details}</p>
+                <p className="text-xs text-[#614752] leading-relaxed font-normal">{item.details}</p>
               </div>
             </div>
 
-            <div className="flex items-center sm:flex-col sm:items-end justify-between text-xs text-gray-400 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
-              <span className="flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                <span>{item.timestamp}</span>
-              </span>
-              <span className="text-[10px] text-gray-400 uppercase tracking-wider font-mono">
-                {item.isSample ? 'Demo Log' : 'Current Session'}
-              </span>
-            </div>
+            <span className="text-xs font-semibold text-[#8a6a77] shrink-0 self-end sm:self-auto">
+              {item.timestamp}
+            </span>
           </div>
         )
       })}

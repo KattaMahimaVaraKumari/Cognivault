@@ -20,13 +20,13 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   isEmpty = false,
 }) => {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-2xs space-y-3 transition-all hover:border-gray-300">
+    <div className="rounded-2xl glass-card-interactive p-5 sm:p-6 space-y-3.5 border border-[#ffdce4]/90 relative overflow-hidden">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+        <span className="text-xs font-bold uppercase tracking-wider text-[#735562]">
           {title}
         </span>
-        <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-700 shrink-0">
-          <Icon className="w-4 h-4" />
+        <div className="w-9 h-9 rounded-xl bg-[#fff0f4] border border-[#fcaec2]/70 flex items-center justify-center text-[#c0385c] shrink-0 shadow-2xs">
+          <Icon className="w-4.5 h-4.5 stroke-[1.8]" />
         </div>
       </div>
 
@@ -34,27 +34,27 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
         <div className="flex items-baseline gap-2">
           <span
             className={cn(
-              'text-2xl sm:text-3xl font-bold tracking-tight',
-              isEmpty ? 'text-gray-400 font-medium text-xl sm:text-2xl' : 'text-gray-900'
+              'text-2xl sm:text-3xl font-extrabold tracking-tight',
+              isEmpty ? 'text-[#a18892] font-medium text-xl sm:text-2xl' : 'text-[#2d1b24]'
             )}
           >
             {value}
           </span>
         </div>
-        <p className="text-xs text-gray-500 leading-relaxed">{subtitle}</p>
+        <p className="text-xs text-[#735562] leading-relaxed font-normal">{subtitle}</p>
       </div>
 
-      <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
+      <div className="pt-2.5 border-t border-[#ffeef2] flex items-center justify-between text-[11px] text-[#9c7886] font-semibold">
         <span className="inline-flex items-center gap-1.5">
           <span
             className={cn(
-              'w-1.5 h-1.5 rounded-full',
-              isEmpty ? 'bg-gray-300' : 'bg-gray-700'
+              'w-2 h-2 rounded-full',
+              isEmpty ? 'bg-slate-300' : 'bg-[#e0567b]'
             )}
           />
-          <span>{badgeText}</span>
+          <span className="text-[#614752] font-medium">{badgeText}</span>
         </span>
-        <span className="text-[10px] uppercase font-mono">In-Memory</span>
+        <span className="text-[10px] uppercase font-mono tracking-wider text-[#a32849]/70">Synced</span>
       </div>
     </div>
   )

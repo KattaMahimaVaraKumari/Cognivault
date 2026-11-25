@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   RotateCcw,
   AlertCircle,
-  ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -56,24 +55,20 @@ interface SubmittedFeedback {
 }
 
 export const FeedbackPage: React.FC = () => {
-  // Form State
   const [wasHelpful, setWasHelpful] = useState<'yes' | 'no' | null>(null)
   const [category, setCategory] = useState<FeedbackCategory>('general')
   const [rating, setRating] = useState<number | null>(null)
   const [comments, setComments] = useState('')
   const [validationError, setValidationError] = useState<string | null>(null)
 
-  // Submission State
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submittedData, setSubmittedData] = useState<SubmittedFeedback | null>(null)
 
-  // Handle rating click: toggles if already selected
   const handleRatingClick = (starValue: number) => {
     setRating((prev) => (prev === starValue ? null : starValue))
     if (validationError) setValidationError(null)
   }
 
-  // Handle Yes / No click
   const handleHelpfulClick = (value: 'yes' | 'no') => {
     setWasHelpful((prev) => (prev === value ? null : value))
     if (validationError) setValidationError(null)
@@ -82,367 +77,217 @@ export const FeedbackPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validation: Require at least one form of input
     const hasHelpfulAnswer = wasHelpful !== null
     const hasRating = rating !== null
     const hasComments = comments.trim().length > 0
 
     if (!hasHelpfulAnswer && !hasRating && !hasComments) {
-      setValidationError(
-        'Please select whether this page was helpful, provide a rating, or enter your comments before submitting.'
-      )
+      setValidationError('Please select an answer, give a rating, or provide comments.')
       return
     }
 
     setValidationError(null)
     setIsSubmitting(true)
 
-    // Simulate immediate frontend state submission without fake lag
-    const now = new Date().toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-
-    setSubmittedData({
-      wasHelpful,
-      category,
-      rating,
-      comments: comments.trim(),
-      submittedAt: now,
-    })
-
-    setIsSubmitting(false)
+    setTimeout(() => {
+      setSubmittedData({
+        wasHelpful,
+        category,
+        rating,
+        comments: comments.trim(),
+        submittedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      })
+      setIsSubmitting(false)
+    }, 300)
   }
 
-  const handleResetForm = () => {
-    setSubmittedData(null)
+  const handleReset = () => {
     setWasHelpful(null)
     setCategory('general')
     setRating(null)
     setComments('')
+    setSubmittedData(null)
     setValidationError(null)
-    setIsSubmitting(false)
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* 1. Page Header & Introduction */}
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-300">
+      {/* 1. Header */}
       <div className="space-y-3">
-        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-[11px] font-semibold uppercase tracking-wider text-gray-600">
-          <MessageCircle className="w-3.5 h-3.5" />
-          <span>User Experience & Input</span>
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#fcaec2]/80 bg-[#fff0f4] text-[11px] font-bold uppercase tracking-wider text-[#8c1d3c] shadow-2xs">
+          <MessageCircle className="w-3.5 h-3.5 text-[#e0567b]" />
+          <span>User Experience & Sentiment</span>
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-gray-900">
-          Feedback
+        <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-[#2d1b24]">
+          Reflections & Feedback
         </h1>
 
-        <p className="text-sm sm:text-base text-gray-600 max-w-2xl leading-relaxed">
-          Help us improve Cognivault AI. Whether you noticed something that could be clearer, experienced a layout issue, or have suggestions for new wellness routines, we value your feedback.
+        <p className="text-sm sm:text-base text-[#614752] max-w-2xl leading-relaxed font-normal">
+          Your impressions guide our wellness tools. Let us know how Cognivault AI is supporting your study habits and stress balance.
         </p>
       </div>
 
       {submittedData ? (
-        /* 2. Success / Confirmation State */
-        <section className="rounded-xl border border-gray-200 bg-white p-6 sm:p-8 shadow-2xs space-y-6">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-gray-900 shrink-0">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-
-            <div className="space-y-1.5">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Thank you for your feedback!
-              </h2>
-              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-xl">
-                Your response has been recorded for this session. Your perspective directly helps us refine our wellness routines, guided breathing paces, and study stress evaluations.
-              </p>
-            </div>
+        /* Submission Success Panel */
+        <div className="rounded-2xl glass-panel p-8 sm:p-12 text-center space-y-4 shadow-lg border border-[#ffdce4]/90 animate-in fade-in duration-300">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#f87d9f] to-[#e0567b] text-white flex items-center justify-center mx-auto shadow-md shadow-[#e0567b]/25">
+            <CheckCircle2 className="w-7 h-7 stroke-[2.2]" />
           </div>
 
-          {/* Submitted Summary Overview */}
-          <div className="rounded-lg border border-gray-100 bg-gray-50/70 p-4 space-y-3 text-xs">
-            <div className="flex items-center justify-between pb-2 border-b border-gray-200/70 text-gray-500">
-              <span className="font-semibold uppercase tracking-wider text-[11px] text-gray-700">
-                Recorded Submission
-              </span>
-              <span>Logged at {submittedData.submittedAt}</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <span className="text-gray-400 block text-[11px]">Was page helpful?</span>
-                <span className="font-medium text-gray-800 capitalize">
-                  {submittedData.wasHelpful ? submittedData.wasHelpful : 'Not specified'}
-                </span>
-              </div>
-
-              <div>
-                <span className="text-gray-400 block text-[11px]">Category</span>
-                <span className="font-medium text-gray-800">
-                  {CATEGORIES.find((c) => c.id === submittedData.category)?.label}
-                </span>
-              </div>
-
-              <div>
-                <span className="text-gray-400 block text-[11px]">Experience Rating</span>
-                <span className="font-medium text-gray-800">
-                  {submittedData.rating ? `${submittedData.rating} / 5 Stars` : 'None given'}
-                </span>
-              </div>
-            </div>
-
-            {submittedData.comments && (
-              <div className="pt-2 border-t border-gray-200/70 space-y-1">
-                <span className="text-gray-400 block text-[11px]">Your Comments:</span>
-                <p className="text-gray-800 bg-white p-3 rounded-md border border-gray-200/60 leading-relaxed whitespace-pre-wrap">
-                  {submittedData.comments}
-                </p>
-              </div>
-            )}
+          <div className="space-y-1">
+            <h2 className="text-2xl font-bold text-[#2d1b24]">Thank You for Your Feedback!</h2>
+            <p className="text-sm text-[#614752] max-w-md mx-auto font-normal">
+              Your feedback was recorded for this session. We appreciate your insights on student well-being.
+            </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-            <span className="text-xs text-gray-400">
-              Client prototype: Responses are held in memory during the active session.
-            </span>
-
-            <button
-              type="button"
-              onClick={handleResetForm}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-xs font-medium text-gray-800 transition-colors shadow-2xs cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5 text-gray-500" />
-              <span>Submit Additional Feedback</span>
-            </button>
-          </div>
-        </section>
+          <button
+            type="button"
+            onClick={handleReset}
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-bold rounded-xl btn-wellness-primary cursor-pointer mt-4"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>Submit Another Note</span>
+          </button>
+        </div>
       ) : (
-        /* 3. Interactive Feedback Form */
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* A. Core Question: "Was this page helpful?" */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6 shadow-2xs space-y-4">
-            <div className="space-y-1">
-              <h2 className="text-base font-semibold text-gray-900">
-                Was this page helpful?
-              </h2>
-              <p className="text-xs text-gray-500 leading-relaxed">
-                Let us know if the current tools and wellness information met your needs.
-              </p>
+        /* Interactive Feedback Form */
+        <form onSubmit={handleSubmit} className="rounded-2xl glass-panel p-6 sm:p-9 shadow-lg border border-[#ffdce4]/90 space-y-6">
+          {validationError && (
+            <div className="flex items-center gap-2 p-3.5 rounded-xl bg-[#fff0f4] border border-[#fcaec2] text-xs font-semibold text-[#8c1d3c]">
+              <AlertCircle className="w-4 h-4 shrink-0 text-[#dc2b60]" />
+              <span>{validationError}</span>
             </div>
+          )}
 
-            <div className="flex items-center gap-3" role="radiogroup" aria-label="Was this page helpful?">
+          {/* 1. Was this page helpful? */}
+          <div className="space-y-2.5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#3b121e]">
+              Was Cognivault helpful for your study sessions today?
+            </label>
+            <div className="flex items-center gap-3">
               <button
                 type="button"
-                role="radio"
-                aria-checked={wasHelpful === 'yes'}
                 onClick={() => handleHelpfulClick('yes')}
                 className={cn(
-                  'inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-xs sm:text-sm font-medium transition-all cursor-pointer',
+                  'flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border text-xs font-bold transition-all cursor-pointer',
                   wasHelpful === 'yes'
-                    ? 'bg-gray-900 text-white border-gray-900 shadow-2xs'
-                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                    ? 'btn-wellness-primary shadow-xs'
+                    : 'glass-panel text-[#6e535e] hover:bg-white/90 border-[#fed5df]'
                 )}
               >
-                <ThumbsUp className={cn('w-4 h-4', wasHelpful === 'yes' ? 'fill-white' : 'text-gray-400')} />
-                <span>Yes</span>
+                <ThumbsUp className="w-4 h-4" />
+                <span>Yes, Very Helpful</span>
               </button>
 
               <button
                 type="button"
-                role="radio"
-                aria-checked={wasHelpful === 'no'}
                 onClick={() => handleHelpfulClick('no')}
                 className={cn(
-                  'inline-flex items-center gap-2 px-4 py-2 rounded-lg border text-xs sm:text-sm font-medium transition-all cursor-pointer',
+                  'flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border text-xs font-bold transition-all cursor-pointer',
                   wasHelpful === 'no'
-                    ? 'bg-gray-900 text-white border-gray-900 shadow-2xs'
-                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                    ? 'bg-[#e0567b] text-white border-[#e0567b] shadow-xs'
+                    : 'glass-panel text-[#6e535e] hover:bg-white/90 border-[#fed5df]'
                 )}
               >
-                <ThumbsDown className={cn('w-4 h-4', wasHelpful === 'no' ? 'fill-white' : 'text-gray-400')} />
-                <span>No</span>
+                <ThumbsDown className="w-4 h-4" />
+                <span>Needs Improvement</span>
               </button>
+            </div>
+          </div>
 
-              {wasHelpful && (
-                <span className="text-xs text-gray-500 ml-2">
-                  Selected: <strong>{wasHelpful === 'yes' ? 'Helpful' : 'Not helpful'}</strong>
+          {/* 2. Star Rating */}
+          <div className="space-y-2.5 pt-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#3b121e]">
+              Overall Experience Rating
+            </label>
+            <div className="flex items-center gap-2">
+              {[1, 2, 3, 4, 5].map((starVal) => {
+                const active = rating !== null && starVal <= rating
+                return (
+                  <button
+                    key={starVal}
+                    type="button"
+                    onClick={() => handleRatingClick(starVal)}
+                    className="p-2 rounded-xl transition-all hover:scale-110 cursor-pointer"
+                    aria-label={`Rate ${starVal} out of 5 stars`}
+                  >
+                    <Star
+                      className={cn(
+                        'w-7 h-7 transition-colors',
+                        active
+                          ? 'fill-[#f59e0b] text-[#f59e0b] drop-shadow-xs'
+                          : 'text-[#e5ccd3] hover:text-[#f8b4c4]'
+                      )}
+                    />
+                  </button>
+                )
+              })}
+              {rating && (
+                <span className="text-xs font-bold text-[#735562] ml-2">
+                  {rating} of 5 Stars
                 </span>
               )}
             </div>
           </div>
 
-          {/* B. Detailed Feedback Form */}
-          <div className="rounded-xl border border-gray-200 bg-white p-5 sm:p-6 shadow-2xs space-y-6">
-            {/* Category Selector */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-900">
-                  Feedback Category
-                </label>
-                <span className="text-xs text-gray-400">Required</span>
-              </div>
-
-              <div
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5"
-                role="radiogroup"
-                aria-label="Feedback Category"
-              >
-                {CATEGORIES.map((cat) => {
-                  const isSelected = category === cat.id
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      role="radio"
-                      aria-checked={isSelected}
-                      onClick={() => setCategory(cat.id)}
-                      className={cn(
-                        'text-left p-3 rounded-lg border text-xs transition-all cursor-pointer flex flex-col justify-between space-y-1',
-                        isSelected
-                          ? 'border-gray-900 bg-gray-900 text-white shadow-2xs'
-                          : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300'
-                      )}
-                    >
-                      <span className="font-semibold">{cat.label}</span>
-                      <span
-                        className={cn(
-                          'text-[11px] leading-normal',
-                          isSelected ? 'text-gray-300' : 'text-gray-400'
-                        )}
-                      >
-                        {cat.description}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Optional 1-5 Star / Numeric Rating */}
-            <div className="space-y-2 pt-4 border-t border-gray-100">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold uppercase tracking-wider text-gray-900">
-                  Overall Experience Rating (Optional)
-                </label>
-                <span className="text-xs text-gray-400">
-                  {rating ? `${rating} of 5 Stars` : 'Optional'}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-1.5" role="radiogroup" aria-label="1 to 5 Star Rating">
-                {[1, 2, 3, 4, 5].map((val) => {
-                  const isFilled = rating !== null && val <= rating
-                  return (
-                    <button
-                      key={val}
-                      type="button"
-                      role="radio"
-                      aria-checked={rating === val}
-                      aria-label={`${val} Star${val > 1 ? 's' : ''}`}
-                      onClick={() => handleRatingClick(val)}
-                      className={cn(
-                        'p-2 rounded-lg border transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-gray-300',
-                        isFilled
-                          ? 'border-gray-900 bg-gray-50 text-gray-900'
-                          : 'border-gray-200 bg-white text-gray-300 hover:text-gray-500 hover:border-gray-300'
-                      )}
-                      title={`Rate ${val} out of 5`}
-                    >
-                      <Star
-                        className={cn(
-                          'w-5 h-5 transition-transform',
-                          isFilled ? 'fill-gray-900 text-gray-900' : 'text-gray-300'
-                        )}
-                      />
-                    </button>
-                  )
-                })}
-
-                {rating && (
+          {/* 3. Feedback Category */}
+          <div className="space-y-2.5 pt-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-[#3b121e]">
+              Topic Category
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {CATEGORIES.map((cat) => {
+                const isSelected = category === cat.id
+                return (
                   <button
+                    key={cat.id}
                     type="button"
-                    onClick={() => setRating(null)}
-                    className="text-xs text-gray-400 hover:text-gray-600 underline ml-2 cursor-pointer"
+                    onClick={() => setCategory(cat.id)}
+                    className={cn(
+                      'text-left p-3.5 rounded-xl border text-xs transition-all cursor-pointer',
+                      isSelected
+                        ? 'bg-[#fff0f4] border-[#f48ea8] text-[#8c1d3c] shadow-xs ring-1 ring-[#fcaec2]/60 font-semibold'
+                        : 'glass-panel text-[#6e535e] hover:bg-white/90 border-[#fed5df]'
+                    )}
                   >
-                    Clear rating
+                    <div className="font-bold text-[#2d1b24]">{cat.label}</div>
+                    <div className="text-[11px] text-[#8a6a77] mt-0.5 font-normal">{cat.description}</div>
                   </button>
-                )}
-              </div>
+                )
+              })}
             </div>
+          </div>
 
-            {/* Multiline Comments Field */}
-            <div className="space-y-2 pt-4 border-t border-gray-100">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="feedback-comments-input"
-                  className="text-xs font-semibold uppercase tracking-wider text-gray-900"
-                >
-                  Additional Comments
-                </label>
-                <span className="text-xs text-gray-400">{comments.length} / 1000 characters</span>
-              </div>
+          {/* 4. Comments Textarea */}
+          <div className="space-y-2 pt-2">
+            <label htmlFor="feedback-comments" className="block text-xs font-bold uppercase tracking-wider text-[#3b121e]">
+              Comments & Suggestions
+            </label>
+            <textarea
+              id="feedback-comments"
+              rows={4}
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              placeholder="What features or habit tools would make Cognivault AI more supportive for your studies?"
+              className="w-full rounded-xl border border-[#fed5df] bg-white/90 p-3.5 text-sm text-[#2d1b24] placeholder:text-[#9f7988] focus:border-[#f0507e] focus:outline-hidden focus:ring-2 focus:ring-[#fcaec2]/50 shadow-2xs font-normal transition-all"
+            />
+          </div>
 
-              <textarea
-                id="feedback-comments-input"
-                rows={4}
-                maxLength={1000}
-                value={comments}
-                onChange={(e) => {
-                  setComments(e.target.value)
-                  if (validationError) setValidationError(null)
-                }}
-                placeholder="Share your thoughts, suggestions for improvement, or details about any issue you experienced..."
-                className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-hidden focus:border-gray-400 focus:ring-2 focus:ring-gray-100 leading-relaxed resize-y transition-all"
-              />
-            </div>
-
-            {/* Validation Message Banner */}
-            {validationError && (
-              <div className="flex items-start gap-2.5 p-3 rounded-lg border border-red-200 bg-red-50/40 text-xs text-red-700">
-                <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
-                <p className="leading-relaxed">{validationError}</p>
-              </div>
-            )}
-
-            {/* Submit Action & Duplicate Prevention */}
-            <div className="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <span className="text-[11px] text-gray-400">
-                Responses are stored in browser memory during this active session.
-              </span>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={cn(
-                  'inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg text-xs sm:text-sm font-medium transition-colors shadow-2xs w-full sm:w-auto cursor-pointer',
-                  isSubmitting
-                    ? 'bg-gray-400 text-white cursor-not-allowed'
-                    : 'bg-gray-900 text-white hover:bg-gray-800'
-                )}
-              >
-                <Send className="w-4 h-4" />
-                <span>{isSubmitting ? 'Submitting...' : 'Submit Feedback'}</span>
-              </button>
-            </div>
+          {/* Submit Action */}
+          <div className="pt-3 border-t border-[#ffeef2] flex justify-end">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-xl btn-wellness-primary cursor-pointer shadow-md"
+            >
+              <span>Submit Note</span>
+              <Send className="w-4 h-4" />
+            </button>
           </div>
         </form>
       )}
-
-      {/* 4. Prototype Architecture & Privacy Notice */}
-      <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-2xs flex flex-col sm:flex-row items-start gap-4">
-        <div className="p-2.5 rounded-lg bg-gray-50 border border-gray-200 text-gray-700 shrink-0">
-          <ShieldCheck className="w-5 h-5" />
-        </div>
-        <div className="space-y-1">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-900">
-            Frontend Prototype Scope
-          </h2>
-          <p className="text-xs text-gray-600 leading-relaxed">
-            Cognivault AI is currently running as a standalone client-side prototype. Feedback submitted through this form updates frontend state in your active browser session and does not transmit data to an external server or remote analytics database.
-          </p>
-        </div>
-      </section>
     </div>
   )
 }

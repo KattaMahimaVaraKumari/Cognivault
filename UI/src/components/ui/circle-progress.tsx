@@ -17,8 +17,8 @@ export const CircleProgress: React.FC<CircleProgressProps> = ({
   progress,
   size = 280,
   strokeWidth = 8,
-  circleColor = '#F3F4F6',
-  progressColor = '#111827',
+  circleColor = '#ffdce4',
+  progressColor = '#e0567b',
   className,
   children,
   breathScale = 1,
@@ -37,7 +37,7 @@ export const CircleProgress: React.FC<CircleProgressProps> = ({
       <motion.div
         animate={{ scale: breathScale }}
         transition={{ duration: 1.2, ease: 'easeInOut' }}
-        className="absolute inset-4 rounded-full bg-gray-50/80 -z-10"
+        className="absolute inset-4 rounded-full bg-[#fff0f4] -z-10"
       />
 
       <svg
@@ -65,16 +65,18 @@ export const CircleProgress: React.FC<CircleProgressProps> = ({
           stroke={progressColor}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
-          strokeLinecap="round"
           animate={{ strokeDashoffset }}
-          transition={{ duration: 0.5, ease: 'linear' }}
+          transition={{ duration: 0.5, ease: 'easeInOut' }}
+          strokeLinecap="round"
         />
       </svg>
 
-      {/* Center content container */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 select-none">
-        {children}
-      </div>
+      {/* Center content */}
+      {children && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+          {children}
+        </div>
+      )}
     </div>
   )
 }

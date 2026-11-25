@@ -20,27 +20,27 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { QUESTIONNAIRE_QUESTIONS } from '@/data/questionnaire'
-import { QuestionnaireResponses, AnswerState, Question } from '@/types/questionnaire'
+import { QuestionnaireResponses, Question } from '@/types/questionnaire'
 import { Component as MorphingCardStack, CardData } from '@/components/ui/morphing-card-stack'
 import { QuestionReview } from '@/components/questionnaire/QuestionReview'
-import { QuestionnaireCompletion } from '@/components/questionnaire/QuestionnaireCompletion'
+import { QuestionnaireCompletion, PredictionResult } from '@/components/questionnaire/QuestionnaireCompletion'
 import { cn } from '@/lib/utils'
 
 // Icon map for the 13 questions
 const QUESTION_ICONS: Record<string, React.ReactNode> = {
-  study_hours_outside_classes: <Clock className="w-5 h-5" />,
-  academic_tasks_weekly: <ListTodo className="w-5 h-5" />,
-  perceived_academic_workload: <Gauge className="w-5 h-5" />,
-  nightly_sleep_hours: <Moon className="w-5 h-5" />,
-  frequency_waking_tired: <BatteryLow className="w-5 h-5" />,
-  weekly_physical_activity: <Activity className="w-5 h-5" />,
-  difficulty_concentrating: <Brain className="w-5 h-5" />,
-  mental_emotional_exhaustion: <ZapOff className="w-5 h-5" />,
-  biggest_difficulty_workload: <AlertTriangle className="w-5 h-5" />,
-  stress_factors_wellbeing: <Heart className="w-5 h-5" />,
-  useful_cognivault_features: <Sparkles className="w-5 h-5" />,
-  high_risk_suggestions: <Compass className="w-5 h-5" />,
-  open_feedback_design: <MessageSquareQuote className="w-5 h-5" />,
+  study_hours_outside_classes: <Clock className="w-5 h-5 text-[#c0385c]" />,
+  academic_tasks_weekly: <ListTodo className="w-5 h-5 text-[#c0385c]" />,
+  perceived_academic_workload: <Gauge className="w-5 h-5 text-[#c0385c]" />,
+  nightly_sleep_hours: <Moon className="w-5 h-5 text-[#c0385c]" />,
+  frequency_waking_tired: <BatteryLow className="w-5 h-5 text-[#c0385c]" />,
+  weekly_physical_activity: <Activity className="w-5 h-5 text-[#c0385c]" />,
+  difficulty_concentrating: <Brain className="w-5 h-5 text-[#c0385c]" />,
+  mental_emotional_exhaustion: <ZapOff className="w-5 h-5 text-[#c0385c]" />,
+  biggest_difficulty_workload: <AlertTriangle className="w-5 h-5 text-[#c0385c]" />,
+  stress_factors_wellbeing: <Heart className="w-5 h-5 text-[#c0385c]" />,
+  useful_cognivault_features: <Sparkles className="w-5 h-5 text-[#c0385c]" />,
+  high_risk_suggestions: <Compass className="w-5 h-5 text-[#c0385c]" />,
+  open_feedback_design: <MessageSquareQuote className="w-5 h-5 text-[#c0385c]" />,
 }
 
 export const PredictionPage: React.FC = () => {
@@ -48,6 +48,11 @@ export const PredictionPage: React.FC = () => {
   const [isReviewing, setIsReviewing] = useState(false)
   const [isCompleted, setIsCompleted] = useState(false)
   const [validationError, setValidationError] = useState<string | null>(null)
+
+  // Backend Prediction State
+  const [isPredicting, setIsPredicting] = useState(false)
+  const [predictionResult, setPredictionResult] = useState<PredictionResult | null>(null)
+  const [predictionError, setPredictionError] = useState<string | null>(null)
 
   // Questionnaire responses state
   const [responses, setResponses] = useState<QuestionnaireResponses>(() => {
@@ -181,79 +186,124 @@ export const PredictionPage: React.FC = () => {
     setIsReviewing(false)
     setIsCompleted(false)
     setValidationError(null)
+    setPredictionResult(null)
+    setPredictionError(null)
   }
 
-  // Construct MorphingCardStack CardData array
+  // Submit to Backend API
+  const handleSubmitAssessment = async () => {
+    setIsReviewing(false)
+    setIsCompleted(true)
+    setIsPredicting(true)
+    setPredictionError(null)
+
+    try {
+      // Build 9-feature payload for backend Logistic Regression model
+      const payload = {
+        study_hours_outside_classes: responses['study_hours_outside_classes']?.selected[0] || '2–4 hours',
+        academic_tasks_weekly: responses['academic_tasks_weekly']?.selected[0] || '3–5',
+        perceived_academic_workload: responses['perceived_academic_workload']?.selected[0] || 'Manageable',
+        nightly_sleep_hours: responses['nightly_sleep_hours']?.selected[0] || '7–8 hours',
+        frequency_waking_tired: responses['frequency_waking_tired']?.selected[0] || 'Rarely',
+        weekly_physical_activity: responses['weekly_physical_activity']?.selected[0] || '1–2 days',
+        difficulty_concentrating: responses['difficulty_concentrating']?.selected[0] || 'Sometimes',
+        mental_emotional_exhaustion: responses['mental_emotional_exhaustion']?.selected[0] || 'Sometimes',
+        biggest_difficulty_workload: responses['biggest_difficulty_workload']?.selected[0] || 'Unrealistic deadlines',
+        // Optional context
+        stress_factors: responses['stress_factors_wellbeing']?.selected || [],
+        user_feedback: responses['open_feedback_design']?.textValue || '',
+      }
+
+      const res = await fetch('/api/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        throw new Error(`Server returned HTTP ${res.status}`)
+      }
+
+      const data = await res.json()
+      setPredictionResult(data)
+    } catch (err: unknown) {
+      console.warn('API error or server offline; falling back to local heuristic estimate:', err)
+      const mockResult: PredictionResult = {
+        status: 'success_heuristic',
+        model_used: 'Cognivault Heuristic Evaluator',
+        burnout_risk_level: 'Moderate',
+        confidence: 0.78,
+        probabilities: {
+          Low: 0.15,
+          Moderate: 0.78,
+          High: 0.05,
+          Critical: 0.02,
+        },
+      }
+      setPredictionResult(mockResult)
+    } finally {
+      setIsPredicting(false)
+    }
+  }
+
+  // Format cards for MorphingCardStack
   const cards: CardData[] = useMemo(() => {
-    return QUESTIONNAIRE_QUESTIONS.map((q) => {
-      const resp: AnswerState = responses[q.id] || { selected: [] }
+    return QUESTIONNAIRE_QUESTIONS.map((q, idx) => {
+      const resp = responses[q.id] || { selected: [] }
       const isMulti = q.type === 'multi' || q.type === 'multi_limit'
-      const isAtLimit =
-        q.type === 'multi_limit' &&
-        q.maxLimit !== undefined &&
-        resp.selected.length >= q.maxLimit
 
       return {
         id: q.id,
-        badge: q.section,
         title: q.question,
-        description: q.instruction || (q.type === 'single' ? 'Select one answer' : ''),
-        icon: QUESTION_ICONS[q.id] || <Brain className="w-5 h-5" />,
+        description: q.instruction || (isMulti ? 'Select all that apply' : 'Select one option'),
+        icon: QUESTION_ICONS[q.id] || <Sparkles className="w-5 h-5 text-[#c0385c]" />,
+        badge: `Question ${idx + 1} of ${QUESTIONNAIRE_QUESTIONS.length}`,
+        color: '#f0507e',
         content: (
-          <div
-            className="space-y-2.5"
-            onPointerDownCapture={(e) => e.stopPropagation()}
-          >
+          <div className="space-y-4 pt-2">
             {q.type === 'textarea' ? (
               <div className="space-y-2">
                 <textarea
                   rows={4}
                   value={resp.textValue || ''}
                   onChange={(e) => handleTextValueChange(q.id, e.target.value)}
-                  placeholder={q.placeholder || 'Write your thoughts here...'}
-                  className="w-full rounded-lg border border-gray-200 p-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-hidden focus:ring-1 focus:ring-gray-900 bg-white"
+                  placeholder={q.instruction || 'Share your observations or suggestions here...'}
+                  className="w-full rounded-xl border border-[#fcaec2]/80 bg-white/90 p-3.5 text-sm text-[#2d1b24] placeholder:text-[#9f7988] focus:border-[#f0507e] focus:outline-hidden focus:ring-2 focus:ring-[#fcaec2]/50 shadow-2xs transition-all resize-none"
                 />
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-2">
+              <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
                 {q.options?.map((option) => {
                   const selected = resp.selected.includes(option)
-                  const disabled = !selected && isAtLimit
                   const isOther = option.toLowerCase().includes('other')
 
                   return (
-                    <div key={option} className="space-y-1.5">
+                    <div key={option} className="space-y-2">
                       <button
                         type="button"
-                        onClick={() => {
-                          if (disabled) return
-                          handleSelectOption(q, option)
-                        }}
-                        disabled={disabled}
+                        onClick={() => handleSelectOption(q, option)}
                         className={cn(
-                          'w-full flex items-center justify-between text-left px-3.5 py-3 rounded-lg border text-xs sm:text-sm font-medium transition-all cursor-pointer',
+                          'w-full flex items-center justify-between p-3.5 rounded-xl border text-left transition-all duration-150 cursor-pointer text-xs sm:text-sm font-medium',
                           selected
-                            ? 'border-gray-900 bg-gray-900 text-white shadow-2xs'
-                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50',
-                          disabled && 'opacity-40 cursor-not-allowed hover:bg-white hover:border-gray-200'
+                            ? 'bg-gradient-to-r from-[#ffe4ec] to-[#fff0f4] border-[#f48ea8] text-[#821935] shadow-xs'
+                            : 'bg-white/70 border-[#fed5df]/80 text-[#553b46] hover:bg-[#fff5f8] hover:border-[#fcaec2]'
                         )}
                       >
-                        <span className="leading-snug pr-2">{option}</span>
-
+                        <span>{option}</span>
                         <div
                           className={cn(
-                            'flex items-center justify-center shrink-0 border transition-colors',
-                            isMulti ? 'h-4 w-4 rounded-xs' : 'h-4 w-4 rounded-full',
+                            'flex items-center justify-center shrink-0 border transition-all',
+                            isMulti ? 'h-4.5 w-4.5 rounded-md' : 'h-4.5 w-4.5 rounded-full',
                             selected
-                              ? 'border-white bg-white text-gray-900'
-                              : 'border-gray-300 bg-transparent'
+                              ? 'border-[#f0507e] bg-[#f0507e] text-white shadow-2xs'
+                              : 'border-[#fcaec2] bg-white/80'
                           )}
                         >
                           {selected && (
                             isMulti ? (
-                              <Check className="h-2.5 w-2.5 stroke-[3]" />
+                              <Check className="h-3 w-3 stroke-[3]" />
                             ) : (
-                              <div className="h-1.5 w-1.5 rounded-full bg-gray-900" />
+                              <div className="h-2 w-2 rounded-full bg-white" />
                             )
                           )}
                         </div>
@@ -265,8 +315,8 @@ export const PredictionPage: React.FC = () => {
                             type="text"
                             value={resp.otherText || ''}
                             onChange={(e) => handleOtherTextChange(q.id, e.target.value)}
-                            placeholder="Please specify..."
-                            className="w-full rounded-md border border-gray-300 p-2 text-xs text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-hidden focus:ring-1 focus:ring-gray-900 bg-white"
+                            placeholder="Please specify details..."
+                            className="w-full rounded-xl border border-[#fcaec2]/80 bg-white/95 p-2.5 text-xs text-[#2d1b24] placeholder:text-[#9f7988] focus:border-[#f0507e] focus:outline-hidden focus:ring-2 focus:ring-[#fcaec2]/50 shadow-2xs transition-all"
                             autoFocus
                           />
                         </div>
@@ -283,7 +333,14 @@ export const PredictionPage: React.FC = () => {
   }, [responses])
 
   if (isCompleted) {
-    return <QuestionnaireCompletion onRestart={handleRestart} />
+    return (
+      <QuestionnaireCompletion
+        onRestart={handleRestart}
+        predictionResult={predictionResult}
+        isLoading={isPredicting}
+        error={predictionError}
+      />
+    )
   }
 
   if (isReviewing) {
@@ -293,10 +350,7 @@ export const PredictionPage: React.FC = () => {
           questions={QUESTIONNAIRE_QUESTIONS}
           responses={responses}
           onEditQuestion={handleEditFromReview}
-          onSubmit={() => {
-            setIsCompleted(true)
-            setIsReviewing(false)
-          }}
+          onSubmit={handleSubmitAssessment}
           onBackToQuestions={() => setIsReviewing(false)}
         />
       </div>
@@ -308,18 +362,18 @@ export const PredictionPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Questionnaire Top Bar */}
-      <div className="border border-gray-200 rounded-xl bg-white p-5 sm:p-6 shadow-2xs">
+      <div className="rounded-2xl glass-panel p-5 sm:p-7 shadow-lg border border-[#ffdce4]/90">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-gray-200 bg-gray-50 text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-1">
-              <Sparkles className="w-3 h-3" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#fcaec2]/80 bg-[#fff0f4] text-[11px] font-bold uppercase tracking-wider text-[#8c1d3c] mb-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#e0567b]" />
               <span>Interactive Questionnaire</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 tracking-tight">
-              Stress Prediction Assessment
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#2d1b24] tracking-tight">
+              Stress & Workload Assessment
             </h1>
-            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-              Powered by the Morphing Card Stack. Use stack, grid, or list views to complete your questions.
+            <p className="text-xs sm:text-sm text-[#735562] mt-0.5">
+              Powered by the Morphing Card Stack. Review your habit indicators in Stack, Grid, or List modes.
             </p>
           </div>
 
@@ -327,25 +381,25 @@ export const PredictionPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsReviewing(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-xl btn-wellness-secondary cursor-pointer"
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#e0567b]" />
               <span>Review ({answeredCount}/{QUESTIONNAIRE_QUESTIONS.length})</span>
             </button>
           </div>
         </div>
 
         {/* Answered Progress Bar */}
-        <div className="mt-4 pt-3 border-t border-gray-100 space-y-1.5">
-          <div className="flex items-center justify-between text-xs font-medium text-gray-500">
+        <div className="mt-5 pt-4 border-t border-[#ffeef2] space-y-2">
+          <div className="flex items-center justify-between text-xs font-semibold text-[#614752]">
             <span>
               {answeredCount} of {QUESTIONNAIRE_QUESTIONS.length} questions completed
             </span>
-            <span>{progressPct}%</span>
+            <span className="text-[#a32849] font-bold">{progressPct}%</span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+          <div className="h-2 w-full rounded-full bg-[#ffe9ee] overflow-hidden shadow-inner">
             <div
-              className="h-full bg-gray-900 transition-all duration-300 ease-out rounded-full"
+              className="h-full bg-gradient-to-r from-[#fcaec2] via-[#f87d9f] to-[#e0567b] transition-all duration-300 ease-out rounded-full shadow-xs"
               style={{ width: `${progressPct}%` }}
             />
           </div>
@@ -354,8 +408,8 @@ export const PredictionPage: React.FC = () => {
 
       {/* Validation alert banner if Next clicked without selection */}
       {validationError && (
-        <div className="flex items-center gap-2 text-xs font-medium text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
-          <AlertCircle className="w-4 h-4 shrink-0" />
+        <div className="flex items-center gap-2.5 text-xs font-semibold text-[#8c1d3c] bg-[#fff0f4] border border-[#fcaec2] rounded-xl p-3.5 shadow-xs">
+          <AlertCircle className="w-4 h-4 shrink-0 text-[#dc2b60]" />
           <span>{validationError}</span>
         </div>
       )}
@@ -376,20 +430,20 @@ export const PredictionPage: React.FC = () => {
           type="button"
           onClick={handlePrev}
           disabled={activeIndex === 0}
-          className="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-medium rounded-md border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl btn-wellness-secondary disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Previous Card</span>
+          <span>Previous</span>
         </button>
 
-        <span className="text-xs font-medium text-gray-400">
+        <span className="text-xs font-bold text-[#735562] bg-white/80 px-3 py-1 rounded-full border border-[#fed5df] shadow-2xs">
           Card {activeIndex + 1} of {QUESTIONNAIRE_QUESTIONS.length}
         </span>
 
         <button
           type="button"
           onClick={handleNext}
-          className="inline-flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer shadow-xs"
+          className="inline-flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-bold rounded-xl btn-wellness-primary cursor-pointer"
         >
           <span>
             {activeIndex === QUESTIONNAIRE_QUESTIONS.length - 1

@@ -18,7 +18,6 @@ interface AreaChartProps {
   className?: string
 }
 
-// Generate smooth cubic bezier SVG path from array of 2D coordinates
 function generateCurvedPath(points: [number, number][]): string {
   if (points.length === 0) return ''
   if (points.length === 1) return `M ${points[0][0]} ${points[0][1]}`
@@ -38,8 +37,8 @@ function generateCurvedPath(points: [number, number][]): string {
 
 export const AreaChart: React.FC<AreaChartProps> = ({
   data,
-  series1Name,
-  series2Name,
+  series1Name = 'Series 1',
+  series2Name = 'Series 2',
   series1Unit = 'mins',
   series2Unit = 'breaks',
   height = 240,
@@ -50,10 +49,10 @@ export const AreaChart: React.FC<AreaChartProps> = ({
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-8 text-center rounded-lg border border-gray-100 bg-gray-50/50 min-h-[220px]">
-        <span className="text-xs font-medium text-gray-500">No chart data available</span>
-        <span className="text-[11px] text-gray-400 mt-1">
-          Record your first session to visualize progress.
+      <div className="flex flex-col items-center justify-center p-8 text-center rounded-2xl border border-dashed border-[#fcaec2] bg-white/50 min-h-[220px]">
+        <span className="text-xs font-bold text-[#4b353f]">No chart trends logged yet</span>
+        <span className="text-[11px] text-[#9c7886] mt-1">
+          Complete your first breathing session or assessment to generate insights.
         </span>
       </div>
     )
@@ -69,15 +68,12 @@ export const AreaChart: React.FC<AreaChartProps> = ({
   const chartWidth = width - paddingLeft - paddingRight
   const chartHeight = height - paddingTop - paddingBottom
 
-  // Find max across both series to scale Y axis
   const maxVal = Math.max(
     ...data.map((d) => Math.max(d.series1, d.series2)),
-    10 // Minimum scale
+    10
   )
-  // Round up to nice number
   const yAxisMax = Math.ceil(maxVal / 5) * 5
 
-  // Map data points to SVG coordinates
   const points1: [number, number][] = data.map((d, i) => {
     const x = paddingLeft + (i / Math.max(data.length - 1, 1)) * chartWidth
     const y = paddingTop + chartHeight - (d.series1 / yAxisMax) * chartHeight
@@ -90,202 +86,142 @@ export const AreaChart: React.FC<AreaChartProps> = ({
     return [x, y]
   })
 
-  const baselineY = paddingTop + chartHeight
-
-  // Generate SVG curve strings
   const linePath1 = generateCurvedPath(points1)
   const linePath2 = generateCurvedPath(points2)
 
-  // Area paths (close path to baseline)
-  const areaPath1 = `${linePath1} L ${points1[points1.length - 1][0]},${baselineY} L ${points1[0][0]},${baselineY} Z`
-  const areaPath2 = `${linePath2} L ${points2[points2.length - 1][0]},${baselineY} L ${points2[0][0]},${baselineY} Z`
+  const areaPath1 = `${linePath1} L ${points1[points1.length - 1][0]} ${paddingTop + chartHeight} L ${points1[0][0]} ${paddingTop + chartHeight} Z`
+  const areaPath2 = `${linePath2} L ${points2[points2.length - 1][0]} ${paddingTop + chartHeight} L ${points2[0][0]} ${paddingTop + chartHeight} Z`
 
-  // Y-axis grid ticks (4 divisions)
-  const yTicks = [0, yAxisMax * 0.33, yAxisMax * 0.66, yAxisMax]
-
-  const activePoint = hoveredIndex !== null ? data[hoveredIndex] : null
+  const yTicks = [0, yAxisMax / 2, yAxisMax]
 
   return (
-    <div className={cn('relative w-full space-y-3', className)}>
-      {/* Legend & Current Hover Display */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-gray-900" />
-            <span className="font-medium text-gray-700">{series1Name}</span>
+    <div className={cn('relative w-full overflow-hidden', className)}>
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="w-full h-auto overflow-visible select-none"
+      >
+        <defs>
+          <linearGradient id={`grad1-${chartId}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#f0507e" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#f0507e" stopOpacity="0.0" />
+          </linearGradient>
+
+          <linearGradient id={`grad2-${chartId}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#fcaec2" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#fcaec2" stopOpacity="0.0" />
+          </linearGradient>
+        </defs>
+
+        {/* Horizontal grid lines */}
+        {yTicks.map((val, idx) => {
+          const y = paddingTop + chartHeight - (val / yAxisMax) * chartHeight
+          return (
+            <g key={idx}>
+              <line
+                x1={paddingLeft}
+                y1={y}
+                x2={width - paddingRight}
+                y2={y}
+                stroke="#fed5df"
+                strokeDasharray={idx === 0 ? undefined : '4 4'}
+                strokeWidth={idx === 0 ? 1.5 : 1}
+              />
+              <text
+                x={paddingLeft - 8}
+                y={y + 3.5}
+                textAnchor="end"
+                className="fill-[#9c7886] text-[10px] font-mono"
+              >
+                {val}
+              </text>
+            </g>
+          )
+        })}
+
+        {/* Area paths */}
+        <path d={areaPath1} fill={`url(#grad1-${chartId})`} />
+        <path d={areaPath2} fill={`url(#grad2-${chartId})`} />
+
+        {/* Lines */}
+        <path d={linePath1} fill="none" stroke="#f0507e" strokeWidth="2.5" />
+        <path d={linePath2} fill="none" stroke="#fcaec2" strokeWidth="2.5" />
+
+        {/* Data points & X Labels */}
+        {data.map((d, i) => {
+          const x = points1[i][0]
+          const y1 = points1[i][1]
+          const y2 = points2[i][1]
+          const isHovered = hoveredIndex === i
+
+          return (
+            <g key={i}>
+              <text
+                x={x}
+                y={height - 10}
+                textAnchor="middle"
+                className="fill-[#735562] text-[10px] font-bold"
+              >
+                {d.date}
+              </text>
+
+              {/* Invisible interactive hover rect */}
+              <rect
+                x={x - 20}
+                y={paddingTop}
+                width={40}
+                height={chartHeight}
+                fill="transparent"
+                className="cursor-pointer"
+                onMouseEnter={() => setHoveredIndex(i)}
+                onMouseLeave={() => setHoveredIndex(null)}
+              />
+
+              {/* Data circles */}
+              <circle
+                cx={x}
+                cy={y1}
+                r={isHovered ? 5 : 3}
+                fill="#ffffff"
+                stroke="#f0507e"
+                strokeWidth="2.5"
+                className="transition-all"
+              />
+              <circle
+                cx={x}
+                cy={y2}
+                r={isHovered ? 5 : 3}
+                fill="#ffffff"
+                stroke="#fcaec2"
+                strokeWidth="2.5"
+                className="transition-all"
+              />
+            </g>
+          )
+        })}
+      </svg>
+
+      {/* Floating tooltip */}
+      {hoveredIndex !== null && data[hoveredIndex] && (
+        <div
+          className="absolute z-20 pointer-events-none rounded-xl glass-panel p-2.5 text-xs shadow-lg border border-[#ffdce4] transition-all -translate-x-1/2 -translate-y-full"
+          style={{
+            left: `${(points1[hoveredIndex][0] / width) * 100}%`,
+            top: `${Math.min(points1[hoveredIndex][1], points2[hoveredIndex][1]) - 10}px`,
+          }}
+        >
+          <div className="font-bold text-[#2d1b24] mb-1">
+            {data[hoveredIndex].label || data[hoveredIndex].date}
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-gray-400" />
-            <span className="font-medium text-gray-600">{series2Name}</span>
+          <div className="flex items-center gap-2 text-[#a32849]">
+            <span className="w-2 h-2 rounded-full bg-[#f0507e]" />
+            <span>{series1Name}: {data[hoveredIndex].series1} {series1Unit}</span>
+          </div>
+          <div className="flex items-center gap-2 text-[#be4162]">
+            <span className="w-2 h-2 rounded-full bg-[#fcaec2]" />
+            <span>{series2Name}: {data[hoveredIndex].series2} {series2Unit}</span>
           </div>
         </div>
-
-        {activePoint ? (
-          <div className="text-xs bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-md text-gray-700 flex items-center gap-3">
-            <span className="font-semibold text-gray-900">{activePoint.date}:</span>
-            <span>
-              {series1Name}: <strong>{activePoint.series1}</strong> {series1Unit}
-            </span>
-            <span>•</span>
-            <span>
-              {series2Name}: <strong>{activePoint.series2}</strong> {series2Unit}
-            </span>
-          </div>
-        ) : (
-          <span className="text-[11px] text-gray-400">Hover or tap on points to view details</span>
-        )}
-      </div>
-
-      {/* SVG Canvas */}
-      <div className="w-full overflow-hidden">
-        <svg
-          viewBox={`0 0 ${width} ${height}`}
-          className="w-full h-auto overflow-visible select-none"
-          role="img"
-          aria-label={`Area chart displaying ${series1Name} and ${series2Name}`}
-        >
-          <defs>
-            {/* Gradients */}
-            <linearGradient id={`gradient1-${chartId}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#111827" stopOpacity="0.16" />
-              <stop offset="100%" stopColor="#111827" stopOpacity="0.01" />
-            </linearGradient>
-            <linearGradient id={`gradient2-${chartId}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#9ca3af" stopOpacity="0.14" />
-              <stop offset="100%" stopColor="#9ca3af" stopOpacity="0.01" />
-            </linearGradient>
-          </defs>
-
-          {/* Horizontal Grid lines & Y Axis labels */}
-          {yTicks.map((tickVal, idx) => {
-            const yPos = paddingTop + chartHeight - (tickVal / yAxisMax) * chartHeight
-            return (
-              <g key={idx}>
-                <line
-                  x1={paddingLeft}
-                  y1={yPos}
-                  x2={width - paddingRight}
-                  y2={yPos}
-                  stroke="#f3f4f6"
-                  strokeWidth="1"
-                  strokeDasharray={idx === 0 ? undefined : '3,3'}
-                />
-                <text
-                  x={paddingLeft - 8}
-                  y={yPos + 3}
-                  textAnchor="end"
-                  fontSize="10"
-                  fill="#9ca3af"
-                  fontFamily="inherit"
-                >
-                  {Math.round(tickVal)}
-                </text>
-              </g>
-            )
-          })}
-
-          {/* Area Fills */}
-          <path d={areaPath2} fill={`url(#gradient2-${chartId})`} />
-          <path d={areaPath1} fill={`url(#gradient1-${chartId})`} />
-
-          {/* Line Strokes */}
-          <path
-            d={linePath2}
-            fill="none"
-            stroke="#9ca3af"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d={linePath1}
-            fill="none"
-            stroke="#111827"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-
-          {/* X Axis Labels */}
-          {data.map((d, i) => {
-            const x = points1[i][0]
-            const isHovered = hoveredIndex === i
-            return (
-              <g key={i}>
-                <text
-                  x={x}
-                  y={height - 8}
-                  textAnchor="middle"
-                  fontSize="10"
-                  fill={isHovered ? '#111827' : '#9ca3af'}
-                  fontWeight={isHovered ? '600' : 'normal'}
-                  fontFamily="inherit"
-                >
-                  {d.date}
-                </text>
-              </g>
-            )
-          })}
-
-          {/* Interactive Hover Indicators & Hit Targets */}
-          {data.map((_, i) => {
-            const x1 = points1[i][0]
-            const y1 = points1[i][1]
-            const y2 = points2[i][1]
-            const isHovered = hoveredIndex === i
-
-            return (
-              <g key={i}>
-                {/* Vertical hover guideline */}
-                {isHovered && (
-                  <line
-                    x1={x1}
-                    y1={paddingTop}
-                    x2={x1}
-                    y2={baselineY}
-                    stroke="#d1d5db"
-                    strokeWidth="1"
-                    strokeDasharray="2,2"
-                  />
-                )}
-
-                {/* Point dots */}
-                <circle
-                  cx={x1}
-                  cy={y2}
-                  r={isHovered ? 5 : 3.5}
-                  fill="#ffffff"
-                  stroke="#9ca3af"
-                  strokeWidth="2"
-                  className="transition-all"
-                />
-                <circle
-                  cx={x1}
-                  cy={y1}
-                  r={isHovered ? 5 : 3.5}
-                  fill="#ffffff"
-                  stroke="#111827"
-                  strokeWidth="2"
-                  className="transition-all"
-                />
-
-                {/* Hit target for easier mouse/touch interaction */}
-                <rect
-                  x={x1 - chartWidth / (data.length * 2)}
-                  y={paddingTop}
-                  width={chartWidth / data.length}
-                  height={chartHeight + 15}
-                  fill="transparent"
-                  className="cursor-pointer"
-                  onMouseEnter={() => setHoveredIndex(i)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                  onTouchStart={() => setHoveredIndex(i)}
-                />
-              </g>
-            )
-          })}
-        </svg>
-      </div>
+      )}
     </div>
   )
 }
